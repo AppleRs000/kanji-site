@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f7d6d">
+<title>かんじ れんしゅう</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- 設定画面 -->
+  <section id="setup">
+    <h1>かんじ れんしゅう</h1>
+
+    <h2>1. がくねん</h2>
+    <div id="gradeButtons" class="choice-grid cols-3"></div>
+
+    <div id="rangeBlock" hidden>
+      <h2>2. はんい</h2>
+      <div id="rangeButtons" class="choice-grid cols-1"></div>
+    </div>
+
+    <h2>3. もんだい</h2>
+    <div id="typeButtons" class="choice-grid cols-3">
+      <button type="button" class="choice" data-type="read">よみ</button>
+      <button type="button" class="choice" data-type="write">かき</button>
+      <button type="button" class="choice" data-type="mix">まぜまぜ</button>
+    </div>
+
+    <h2>4. かず</h2>
+    <div id="countButtons" class="choice-grid cols-3">
+      <button type="button" class="choice" data-count="5">5もん</button>
+      <button type="button" class="choice" data-count="10">10もん</button>
+      <button type="button" class="choice" data-count="20">20もん</button>
+    </div>
+
+    <p id="setupNote" class="note"></p>
+    <button type="button" id="startBtn" class="primary">スタート</button>
+  </section>
+
+  <!-- クイズ画面 -->
+  <section id="quiz" hidden>
+    <div class="quiz-top">
+      <button type="button" id="quitBtn" class="ghost">やめる</button>
+      <div id="progressText"></div>
+    </div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div id="qLabel" class="q-label"></div>
+    <div id="qCard" class="q-card"></div>
+    <div id="choices" class="choice-grid cols-2"></div>
+    <div id="feedback" class="feedback" hidden>
+      <div id="feedbackMark"></div>
+      <div id="feedbackText"></div>
+      <button type="button" id="nextBtn" class="primary">つぎへ</button>
+    </div>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="result" hidden>
+    <h1>けっか</h1>
+    <div id="scoreBig"></div>
+    <p id="scoreMsg"></p>
+    <div id="missList"></div>
+    <button type="button" id="againBtn" class="primary">もういちど</button>
+    <button type="button" id="weakBtn" class="secondary">にがて かんじだけ やる</button>
+    <button type="button" id="topBtn" class="ghost">さいしょに もどる</button>
+  </section>
+
+</main>
+
+<script src="data-grade3.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
