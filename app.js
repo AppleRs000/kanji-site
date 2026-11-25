@@ -62,6 +62,59 @@
     });
   }
 
+  /* ---------- まだ習っていない漢字は、ひらがなで見せる ---------- */
+  var G1 = '一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六';
+  var gradeOf = {};
+  ALL.forEach(function (e) { gradeOf[e.k] = e.grade; });
+
+  function isKanji(c) { return /[一-鿿]/.test(c); }
+
+  function unlearned(c, grade) {
+    if (!isKanji(c)) return false;
+    if (gradeOf[c] !== undefined) return gradeOf[c] > grade;
+    return G1.indexOf(c) < 0;
+  }
+
+  function hasUnlearned(s, grade) {
+    for (var i = 0; i < s.length; i++) if (unlearned(s.charAt(i), grade)) return true;
+    return false;
+  }
+
+  function hasKanji(s) {
+    for (var i = 0; i < s.length; i++) if (isKanji(s.charAt(i))) return true;
+    return false;
+  }
+
+  /* 例語を「出題する漢字の前」と「うしろ」に分け、習っていない漢字はその読みに直す */
+  function splitWord(q, grade) {
+    var w = q.word.w, k = q.entry.k, r = q.word.r, p = q.word.p;
+    var i = w.indexOf(k);
+    if (i < 0) return { pre: w, post: '' };
+    var pre = w.slice(0, i), post = w.slice(i + 1);
+    var plain = { pre: pre, post: post };
+    if (!hasUnlearned(pre, grade) && !hasUnlearned(post, grade)) return plain;
+
+    var j = r.indexOf(p);
+    while (j >= 0) {
+      var rPre = r.slice(0, j), rPost = r.slice(j + p.length);
+      var okPre = hasKanji(pre) || pre === rPre;
+      var okPost = hasKanji(post) || post === rPost;
+      if (okPre && okPost) {
+        return {
+          pre: hasUnlearned(pre, grade) ? rPre : pre,
+          post: hasUnlearned(post, grade) ? rPost : post
+        };
+      }
+      j = r.indexOf(p, j + 1);
+    }
+    return plain;
+  }
+
+  function shownWord(q) {
+    var s = splitWord(q, quiz.grade);
+    return q.word.w.indexOf(q.entry.k) < 0 ? q.word.w : s.pre + q.entry.k + s.post;
+  }
+
   function show(name) {
     ['setup', 'quiz', 'result'].forEach(function (id) { $(id).hidden = id !== name; });
     window.scrollTo(0, 0);
@@ -127,7 +180,7 @@
   /* ---------- 問題づくり ---------- */
   function readDistractors(word) {
     var seen = {};
-    var same = [], near = [];
+    var same = [], near = [], far = [];
     seen[word.r] = true;
     ALL.forEach(function (e) {
       e.words.forEach(function (x) {
@@ -136,16 +189,19 @@
         var d = Math.abs(x.r.length - word.r.length);
         if (d === 0) same.push(x.r);
         else if (d === 1) near.push(x.r);
+        else far.push({ r: x.r, d: d });
       });
     });
-    shuffle(same); shuffle(near);
-    return same.concat(near).slice(0, 3);
+    shuffle(same); shuffle(near); shuffle(far);
+    far.sort(function (a, b) { return a.d - b.d; });
+    var farR = far.map(function (x) { return x.r; });
+    return same.concat(near, farR).slice(0, 3);
   }
 
   function writeDistractors(entry, p) {
     var fits = function (c) { return readingTokens(c).indexOf(p) < 0; };
     var same = ALL.filter(function (c) { return c.grade === entry.grade && c.k !== entry.k && fits(c); });
-    var rest = ALL.filter(function (c) { return c.grade !== entry.grade && fits(c); });
+    var rest = ALL.filter(function (c) { return c.grade !== entry.grade && c.grade <= state.grade && fits(c); });
     shuffle(same); shuffle(rest);
     return same.concat(rest).slice(0, 3).map(function (c) { return c.k; });
   }
@@ -210,11 +266,13 @@
 
     var g = state.grade;
     var info = rangeInfo(g);
-    var defs = [{ id: 'only', label: g + '年生だけ', sub: info.only.n + '字' }];
+    var grades = ALL.filter(function (e) { return e.grade <= g; }).map(function (e) { return e.grade; });
+    var minG = grades.length ? Math.min.apply(null, grades) : 1;
+    var defs =[{ id: 'only', label: g + '年生だけ', sub: info.only.n + '字' }];
     if (g > 1) {
       defs.push({
         id: 'review',
-        label: '1〜' + g + '年生 ふくしゅう',
+        label: minG + '〜' + g + '年生 ふくしゅう',
         sub: info.review.ok ? info.review.n + '字' : 'まえの がくねんは じゅんび中'
       });
     }
@@ -268,7 +326,7 @@
     var pool = poolFor(state.grade, state.range);
     if (!pool.length) return;
     var picked = pickWeighted(pool, Math.min(state.count, pool.length));
-    quiz = { questions: picked.map(makeQuestion), index: 0, score: 0, misses: [] };
+    quiz = { questions: picked.map(makeQuestion), index: 0, score: 0, misses: [], grade: state.grade };
     show('quiz');
     renderQuestion();
   }
@@ -278,8 +336,9 @@
     var k = q.entry.k;
     var i = w.indexOf(k);
     if (i < 0) return '<span class="word">' + esc(w) + '</span>';
-    var before = esc(w.slice(0, i));
-    var after = esc(w.slice(i + 1));
+    var s = splitWord(q, quiz.grade);
+    var before = esc(s.pre);
+    var after = esc(s.post);
     if (q.type === 'read') {
       return '<span class="word">' + before + '<span class="focus">' + esc(k) + '</span>' + after + '</span>';
     }
@@ -348,7 +407,7 @@
     $('feedbackText').innerHTML =
       '<strong>' + (ok ? 'せいかい！' : 'ざんねん… せいかいは「' + esc(q.answer) + '」') + '</strong>' +
       '<div class="detail"><span class="kanji">' + esc(e.k) + '</span>' + esc(info.join('　')) +
-      '<br>' + esc(w.w) + '（' + esc(w.r) + '）</div>';
+      '<br>' + esc(shownWord(q)) + '（' + esc(w.r) + '）</div>';
     $('nextBtn').textContent = quiz.index + 1 < quiz.questions.length ? 'つぎへ' : 'けっかを みる';
     fb.hidden = false;
     try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (err) { /* 無視 */ }
@@ -382,7 +441,7 @@
         var d = document.createElement('div');
         d.className = 'miss-item';
         d.innerHTML = '<span class="kanji">' + esc(q.entry.k) + '</span>' +
-          '<span class="miss-text">' + esc(q.word.w) + '（' + esc(q.word.r) + '）</span>';
+          '<span class="miss-text">' + esc(shownWord(q)) + '（' + esc(q.word.r) + '）</span>';
         list.appendChild(d);
       });
     }
