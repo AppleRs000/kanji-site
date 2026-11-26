@@ -1,0 +1,62 @@
+/* プリント作成画面 */
+#printApp { max-width: 850px; margin: 0 auto; padding: 16px; }
+.print-header { text-align:center; }
+.print-header h1 { margin:12px 0 4px; }
+.print-header p { margin:0 0 18px; color:#6b5b3e; }
+.back-link { color:var(--main-dark); font-weight:700; text-decoration:none; }
+.print-settings { background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px; }
+.scope-option,.type-option { display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--line); border-radius:12px; padding:12px; font-size:16px; }
+.scope-option input,.type-option input,.count-row input { accent-color:var(--main); transform:scale(1.15); }
+.type-option { justify-content:center; }
+.kanji-picker { margin-top:12px; padding:12px; background:#fffaf1; border-radius:12px; border:1px solid var(--line); }
+.picker-tools { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.small-button { border:1px solid var(--line); background:white; border-radius:8px; padding:6px 10px; }
+.kanji-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:6px; max-height:260px; overflow:auto; }
+.kanji-item { display:flex; align-items:center; justify-content:center; gap:4px; padding:5px 2px; border:1px solid var(--line); border-radius:8px; background:white; font-family:var(--kyo); font-size:20px; }
+.kanji-item input { accent-color:var(--main); }
+.count-row { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; }
+.count-row label { display:flex; align-items:center; gap:6px; }
+.custom-count input { width:68px; padding:7px; border:1px solid var(--line); border-radius:8px; font:inherit; }
+.action-row { margin-top:20px; }
+.preview-actions { display:flex; gap:12px; margin:16px 0; }
+.preview-actions button { flex:1; margin:0; }
+.note { text-align:center; color:#765; }
+#paperOutput { color:#111; }
+
+/* 印刷用紙 */
+.print-sheet { width:210mm; min-height:297mm; margin:12px auto; padding:12mm 13mm; background:#fff; box-shadow:0 2px 12px #0002; page-break-after:always; break-after:page; font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111; }
+.print-sheet:last-child { page-break-after:auto; break-after:auto; }
+.sheet-title { text-align:center; font-size:21pt; font-weight:700; margin:0 0 5mm; letter-spacing:.08em; }
+.sheet-meta { display:flex; justify-content:space-between; font-size:11pt; margin-bottom:5mm; }
+.name-line { border-bottom:1px solid #222; display:inline-block; min-width:65mm; height:7mm; vertical-align:bottom; }
+.instruction { font-size:12pt; margin:0 0 5mm; }
+.write-grid { display:grid; grid-template-columns:1fr; gap:4mm; }
+.write-item { display:grid; grid-template-columns:11mm 1fr; gap:3mm; align-items:center; break-inside:avoid; }
+.q-number { width:8mm; height:8mm; border:1px solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:11pt; }
+.write-content { min-width:0; }
+.write-prompt { font-size:14pt; margin:0 0 1mm 1mm; }
+.practice-box { height:22mm; border:1px solid #222; position:relative; }
+.practice-box:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:1px dashed #777; }
+.read-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:9mm; row-gap:7mm; }
+.read-item { font-family:var(--kyo); font-size:15pt; line-height:1.8; border-bottom:1px solid #aaa; padding:1mm 0 3mm; break-inside:avoid; }
+.read-number { font-family:Arial,sans-serif; font-size:11pt; margin-right:2mm; }
+.read-word { font-weight:600; }
+.read-blank { display:inline-block; min-width:23mm; border-bottom:1px solid #111; height:1.2em; vertical-align:baseline; }
+.inline-answer { display:block; font-family:sans-serif; font-size:9pt; color:#555; margin-top:1mm; }
+.answer-sheet .answer-list { display:grid; grid-template-columns:1fr 1fr; gap:5mm 10mm; font-size:13pt; }
+.answer-row { border-bottom:1px dotted #999; padding:2mm 0; }
+.answer-row strong { margin-right:3mm; }
+@page { size:A4 portrait; margin:0; }
+@media print {
+  body { background:#fff !important; }
+  #printApp { max-width:none; padding:0; margin:0; }
+  .print-header,.print-settings,.no-print { display:none !important; }
+  #preview { display:block !important; }
+  .print-sheet { width:210mm; min-height:297mm; margin:0; padding:12mm 13mm; box-shadow:none; }
+}
+@media screen and (max-width:600px) {
+  #printApp { padding:10px; }
+  .print-settings { padding:12px; }
+  .preview-actions { flex-direction:column; }
+  .print-sheet { width:100%; min-height:0; padding:18px; }
+}

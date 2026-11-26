@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2f7d6d">
+<title>漢字プリント作成</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+<main id="printApp">
+  <header class="print-header">
+    <a href="index.html" class="back-link">← れんしゅうにもどる</a>
+    <h1>漢字プリント作成</h1>
+    <p>学年・範囲・問題の種類を選んで、プリントを作ろう。</p>
+  </header>
+
+  <section id="settings" class="print-settings">
+    <h2>1. 学年</h2>
+    <div id="gradeSelect" class="choice-grid cols-3"></div>
+
+    <h2>2. 範囲</h2>
+    <div class="choice-grid cols-1" id="scopeSelect">
+      <label class="scope-option"><input type="radio" name="scope" value="grade" checked> 選んだ学年の漢字</label>
+      <label class="scope-option"><input type="radio" name="scope" value="review"> 1年生から選んだ学年までの復習</label>
+      <label class="scope-option"><input type="radio" name="scope" value="weak"> これまでに間違えた漢字（この端末の記録）</label>
+      <label class="scope-option"><input type="radio" name="scope" value="custom"> 漢字を選んで範囲を指定する</label>
+    </div>
+    <div id="kanjiPicker" class="kanji-picker" hidden>
+      <div class="picker-tools">
+        <strong>出題する漢字を選んでね</strong>
+        <button type="button" id="selectAll" class="small-button">すべて選択</button>
+        <button type="button" id="clearAll" class="small-button">選択を解除</button>
+      </div>
+      <div id="kanjiList" class="kanji-list"></div>
+    </div>
+
+    <h2>3. 問題の種類</h2>
+    <div class="choice-grid cols-3" id="typeSelect">
+      <label class="type-option"><input type="radio" name="ptype" value="write" checked> 書き</label>
+      <label class="type-option"><input type="radio" name="ptype" value="read"> 読み</label>
+      <label class="type-option"><input type="radio" name="ptype" value="mix"> 両方</label>
+    </div>
+
+    <h2>4. 問題数</h2>
+    <div class="count-row">
+      <label><input type="radio" name="count" value="5"> 5問</label>
+      <label><input type="radio" name="count" value="10" checked> 10問</label>
+      <label><input type="radio" name="count" value="20"> 20問</label>
+      <label class="custom-count">指定 <input id="customCount" type="number" min="1" max="200" value="10"> 問</label>
+    </div>
+
+    <h2>5. 解答の表示</h2>
+    <div class="choice-grid cols-1">
+      <label class="scope-option"><input type="radio" name="answers" value="none" checked> 問題プリントのみ</label>
+      <label class="scope-option"><input type="radio" name="answers" value="separate"> 解答を別のページにする</label>
+      <label class="scope-option"><input type="radio" name="answers" value="inline"> 問題と同じ紙に答えも表示する</label>
+    </div>
+
+    <div class="action-row">
+      <button type="button" id="makeBtn" class="primary">プリントを作成</button>
+    </div>
+    <p id="status" class="note" aria-live="polite"></p>
+  </section>
+
+  <section id="preview" hidden>
+    <div class="preview-actions no-print">
+      <button type="button" id="editBtn" class="secondary">設定にもどる</button>
+      <button type="button" id="printBtn" class="primary">印刷・PDF保存</button>
+    </div>
+    <div id="paperOutput"></div>
+  </section>
+</main>
+<script src="data-grade1.js"></script>
+<script src="data-grade2.js"></script>
+<script src="data-grade3.js"></script>
+<script src="data-grade4.js"></script>
+<script src="data-grade5.js"></script>
+<script src="data-grade6.js"></script>
+<script src="print.js"></script>
+</body>
+</html>
