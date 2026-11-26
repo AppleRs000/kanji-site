@@ -21,13 +21,21 @@
     return ALL.filter(function(e){return selected.has(e.k) && e.grade<=selectedGrade;});
   }
   function renderGrades() {
-    var box=$('gradeSelect'); box.innerHTML='';
+    var box=$('gradeSelect');
+    var previous=selectedGrade;
+    box.innerHTML='';
     for(var g=1;g<=6;g++){
-      var b=document.createElement('button'); b.type='button'; b.className='choice'+(g===selectedGrade?' selected':'');
-      b.innerHTML='<span class="main">'+g+'年生</span><span class="sub">'+ALL.filter(function(e){return e.grade===g;}).length+'字</span>';
-      b.addEventListener('click',function(n){return function(){selectedGrade=n;renderGrades();renderKanji();updateStatus();};}(g));
-      box.appendChild(b);
+      var option=document.createElement('option');
+      option.value=String(g);
+      option.textContent=g+'年生（'+ALL.filter(function(e){return e.grade===g;}).length+'字）';
+      box.appendChild(option);
     }
+    box.value=String(previous);
+    box.addEventListener('change',function(){
+      selectedGrade=parseInt(box.value,10);
+      renderKanji();
+      updateStatus();
+    });
   }
   function renderKanji() {
     var box=$('kanjiList'); box.innerHTML='';
@@ -46,7 +54,7 @@
     var type=radio('ptype');
     var count=radio('count')==='custom' ? parseInt($('customCount').value,10) : parseInt(radio('count'),10);
     if(!Number.isFinite(count)||count<1) count=10;
-    count=Math.min(count,200);
+    count=Math.min(Math.max(count,1),20);
     if(!p.length) return [];
     var out=[];
     for(var i=0;i<count;i++){
@@ -86,7 +94,8 @@
       else {
         content+='<div class="write-grid">'+chunk.map(function(q,j){return q.type==='write'?writeItem(q,offset+j,answers):readItem(q,offset+j,answers);}).join('')+'</div>';
       }
-      content+='</div>';\n      pages.push(page(title,selectedGrade+'年生・'+(isWrite?'書き':isRead?'読み':'読み書き')+'　全'+qs.length+'問',content,''));
+      content+='</div>';
+      pages.push(page(title,selectedGrade+'年生・'+(isWrite?'書き':isRead?'読み':'読み書き')+'　全'+qs.length+'問',content,''));
     }
     var html=pages.join('');
     if(answers==='separate'){

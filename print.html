@@ -18,7 +18,7 @@
 
   <section id="settings" class="print-settings">
     <h2>1. 学年</h2>
-    <div id="gradeSelect" class="choice-grid cols-3"></div>
+    <select id="gradeSelect" class="grade-select" aria-label="学年を選択"></select>
 
     <h2>2. 範囲</h2>
     <div class="choice-grid cols-1" id="scopeSelect">
@@ -48,7 +48,7 @@
       <label><input type="radio" name="count" value="5"> 5問</label>
       <label><input type="radio" name="count" value="10" checked> 10問</label>
       <label><input type="radio" name="count" value="20"> 20問</label>
-      <label class="custom-count">指定 <input id="customCount" type="number" min="1" max="200" value="10"> 問</label>
+      <label class="custom-count">指定 <input id="customCount" type="number" min="1" max="20" value="10"> 問</label>
     </div>
 
     <h2>5. 解答の表示</h2>
