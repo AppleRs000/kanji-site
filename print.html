@@ -40,9 +40,11 @@
     <div class="choice-grid cols-1" id="modeSelect">
       <label class="scope-option"><input type="radio" name="pmode" value="practice" checked> れんしゅうプリント（練習ますつき）</label>
       <label class="scope-option"><input type="radio" name="pmode" value="test"> テスト（練習ますなし・うすい字なし）</label>
+      <label class="scope-option"><input type="radio" name="pmode" value="order"> 書き順プリント（書き順の図と、なぞる練習ます）</label>
     </div>
     <p class="hint">テストは「覚えているかな？」の確認用です。答えを書くますだけが並びます。</p>
 
+    <div id="typeBlock">
     <h2>4. 問題の種類</h2>
     <div class="choice-grid cols-3" id="typeSelect">
       <label class="type-option"><input type="radio" name="ptype" value="write" checked> 書き</label>
@@ -51,7 +53,9 @@
     </div>
     <p class="hint">「両方」は、上の段が読み・下の段が書きになります。</p>
 
-    <h2>5. 問題数（1枚20問まで。超えると2枚目以降に続きます）</h2>
+    </div>
+
+    <h2 id="countTitle">5. 問題数（1枚20問まで。超えると2枚目以降に続きます）</h2>
     <div class="count-row">
       <label><input type="radio" name="count" value="5"> 5問</label>
       <label><input type="radio" name="count" value="10" checked> 10問</label>
@@ -73,15 +77,21 @@
     <p class="hint">答えを書くますの下に、同じ漢字をくり返し書く練習ますがつきます。10問までのときは、ますが大きくなります。</p>
     </div>
 
+    <div id="orderBlock">
     <h2>7. 書き順の一覧</h2>
     <label class="check-option"><input type="checkbox" id="orderSheet"> 出題した漢字の書き順（1画ずつ増える図）を別のページにつける</label>
     <p class="hint">書き順データをネットから読みこむので、インターネットにつながっているときに使えます。</p>
 
+    </div>
+
+    <div id="answersBlock">
     <h2>8. 解答の表示</h2>
     <div class="choice-grid cols-1">
       <label class="scope-option"><input type="radio" name="answers" value="none" checked> 問題プリントのみ</label>
       <label class="scope-option"><input type="radio" name="answers" value="separate"> 解答を別のページにする</label>
       <label class="scope-option"><input type="radio" name="answers" value="inline"> 問題と同じ紙に答えも表示する</label>
+    </div>
+
     </div>
 
     <div class="action-row">
@@ -108,5 +118,10 @@
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
 <script src="print.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 </body>
 </html>

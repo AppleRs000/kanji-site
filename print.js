@@ -252,6 +252,13 @@
     }
     return next().then(function (d) { if (d && d.strokes) strokeCache[k] = d; return d && d.strokes ? d : null; });
   }
+  function loadMany(ks) {
+    return Promise.all(ks.map(function (k) { return loadStrokes(k).then(function (d) { return [k, d]; }); })).then(function (list) {
+      var map = {}, bad = 0;
+      list.forEach(function (x) { map[x[0]] = x[1]; if (!x[1]) bad++; });
+      return { map: map, bad: bad };
+    });
+  }
   var NS = 'http://www.w3.org/2000/svg';
   function frameHtml(strokes, n) {
     var paths = '';
@@ -259,26 +266,52 @@
     return '<div class="o-frame"><svg viewBox="0 0 1024 1024"><g transform="translate(0,900) scale(1,-1)">' + paths + '</g></svg><i>' + (n + 1) + '</i></div>';
   }
   var O_PER_ROW = 19, O_ROWS_PER_SHEET = 10;
-  function orderSheets(kanjis, map) {
+  function pracCell(k, ghost) { return '<div class="o-frame o-prac">' + CROSS + (ghost ? '<span class="trace-ghost">' + esc(k) + '</span>' : '') + '</div>'; }
+  /* withPractice：書き順の図のあとに、なぞる練習ます（1つ目はうすい字）を並べる */
+  function orderSheets(kanjis, map, withPractice, title) {
     var rows = [];
     kanjis.forEach(function (k) {
       var d = map[k];
       if (!d) { rows.push('<div class="o-row"><div class="o-label">' + esc(k) + '</div><span class="o-fail">書き順データを読みこめませんでした</span></div>'); return; }
       for (var off = 0; off < d.strokes.length; off += O_PER_ROW) {
         var cells = off === 0 ? '<div class="o-label">' + esc(k) + '</div>' : '<div class="o-label o-blank"></div>';
-        for (var n = off; n < Math.min(d.strokes.length, off + O_PER_ROW); n++) cells += frameHtml(d.strokes, n);
+        var end = Math.min(d.strokes.length, off + O_PER_ROW);
+        for (var n = off; n < end; n++) cells += frameHtml(d.strokes, n);
+        if (withPractice && end === d.strokes.length) {
+          var rest = O_PER_ROW - (end - off);
+          if (rest >= 2) for (var r = 0; r < rest; r++) cells += pracCell(k, r === 0 && withPractice === 'ghost');
+        }
         rows.push('<div class="o-row">' + cells + '</div>');
       }
     });
     var html = '', total = Math.ceil(rows.length / O_ROWS_PER_SHEET);
     for (var p = 0; p < total; p++) {
-      html += sheetHtml({ title: '書き順の一覧', sub: selectedGrade + '年生' + (total > 1 ? '　' + (p + 1) + '／' + total : ''), cls: 'order-sheet',
-        body: '<div class="order-list">' + rows.slice(p * O_ROWS_PER_SHEET, (p + 1) * O_ROWS_PER_SHEET).join('') + '</div>' });
+      html += sheetHtml({ title: title || '書き順の一覧', sub: selectedGrade + '年生' + (total > 1 ? '　' + (p + 1) + '／' + total : ''), cls: 'order-sheet',
+        body: (withPractice ? '<p class="sheet-instruction">書き順を見て、うすい字をなぞってから、ますに書きましょう。</p>' : '') + '<div class="order-list">' + rows.slice(p * O_ROWS_PER_SHEET, (p + 1) * O_ROWS_PER_SHEET).join('') + '</div>' });
     }
     return html;
   }
 
   var building = false;
+  /* 書き順プリント：問題は作らず、漢字ごとに「書き順の図＋なぞる練習ます」を並べる */
+  function buildOrderOnly() {
+    var p = pool().slice(), ks;
+    if (!p.length) { $('status').textContent = '出題できる漢字がありません。範囲を確認してください。'; return false; }
+    if (radio('scope') === 'custom') { ks = p.map(function (e) { return e.k; }).slice(0, 100); }
+    else {
+      var order = {}; ALL.forEach(function (e, i) { order[e.k] = i; });
+      ks = shuffle(p).slice(0, Math.min(wantedCount(), p.length)).map(function (e) { return e.k; }).sort(function (a, b) { return order[a] - order[b]; });
+    }
+    isTest = false;
+    var withPractice = 'ghost';
+    building = true; $('makeBtn').disabled = true; $('status').textContent = '書き順データを読みこみ中…';
+    loadMany(ks).then(function (r) {
+      show(orderSheets(ks, r.map, withPractice, '書き順プリント'));
+      if (r.bad) alert('書き順データを読みこめなかった漢字が ' + r.bad + ' 字あります。インターネットにつながっているか、たしかめてください。');
+    }).then(function () { building = false; $('makeBtn').disabled = false; updateStatus(); },
+            function () { building = false; $('makeBtn').disabled = false; });
+    return true;
+  }
   function show(html) {
     $('paperOutput').innerHTML = html;
     $('settings').hidden = true; $('preview').hidden = false;
@@ -286,6 +319,7 @@
   }
   function build() {
     if (building) return false;
+    if (radio('pmode') === 'order') return buildOrderOnly();
     var qs = makeQuestions();
     if (!qs.length) { $('status').textContent = '出題できる漢字がありません。範囲を確認してください。'; return false; }
     var type = radio('ptype'), answers = radio('answers');
@@ -304,11 +338,9 @@
     var ks = [];
     qs.forEach(function (q) { if (ks.indexOf(q.entry.k) < 0) ks.push(q.entry.k); });
     building = true; $('makeBtn').disabled = true; $('status').textContent = '書き順データを読みこみ中…';
-    Promise.all(ks.map(function (k) { return loadStrokes(k).then(function (d) { return [k, d]; }); })).then(function (list) {
-      var map = {}, bad = 0;
-      list.forEach(function (x) { map[x[0]] = x[1]; if (!x[1]) bad++; });
-      show(html + orderSheets(ks, map) + tail);
-      if (bad) alert('書き順データを読みこめなかった漢字が ' + bad + ' 字あります。インターネットにつながっているか、たしかめてください。');
+    loadMany(ks).then(function (r) {
+      show(html + orderSheets(ks, r.map, false) + tail);
+      if (r.bad) alert('書き順データを読みこめなかった漢字が ' + r.bad + ' 字あります。インターネットにつながっているか、たしかめてください。');
     }).then(function () { building = false; $('makeBtn').disabled = false; updateStatus(); },
             function () { building = false; $('makeBtn').disabled = false; });
     return true;
@@ -335,7 +367,12 @@
   window.addEventListener('resize', fitPreview);
 
   document.querySelectorAll('input[name="pmode"]').forEach(function (el) {
-    el.addEventListener('change', function () { $('practiceBlock').hidden = radio('pmode') === 'test'; });
+    el.addEventListener('change', function () {
+      var m = radio('pmode');
+      $('practiceBlock').hidden = m !== 'practice';
+      $('typeBlock').hidden = m === 'order'; $('orderBlock').hidden = m === 'order'; $('answersBlock').hidden = m === 'order';
+      $('countTitle').textContent = m === 'order' ? '5. 漢字の数（「漢字を選んで範囲を指定」のときは、選んだ漢字すべて）' : '5. 問題数（1枚20問まで。超えると2枚目以降に続きます）';
+    });
   });
   document.querySelectorAll('input[name="scope"]').forEach(function (el) {
     el.addEventListener('change', function () { $('kanjiPicker').hidden = radio('scope') !== 'custom'; updateStatus(); });

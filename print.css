@@ -151,3 +151,8 @@
   body.rot-print .sheet-wrap { position:relative; width:210mm; height:296mm; overflow:hidden; }
   body.rot-print .print-sheet { position:absolute; left:0; top:0; transform-origin:0 0; transform:translate(206mm,4mm) scale(.97) rotate(90deg); }
 }
+
+/* 書き順プリントの、なぞる練習ます */
+.o-frame.o-prac { border:.3mm solid #222; display:flex; align-items:center; justify-content:center; font-family:var(--kyo); font-size:9mm; }
+.o-frame.o-prac .trace-ghost { position:relative; z-index:1; color:#c4c4c4; }
+.o-row { gap:1mm; }

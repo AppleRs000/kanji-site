@@ -51,6 +51,13 @@
     <div id="strip" class="stroke-strip"></div>
   </section>
 
+  <section class="offline-box">
+    <h2>オフラインで使うには</h2>
+    <p>ネットにつながっているうちに、書き順データをこの端末に保存しておくと、教室のネットが不安定でも使えます。（全1,026字・数MB〜10MBほど）</p>
+    <button type="button" id="saveAllBtn" class="secondary">書き順データをぜんぶ保存する</button>
+    <p id="saveMsg" class="save-msg" aria-live="polite"></p>
+  </section>
+
   <p class="credit">書き順データ：<a href="https://github.com/k1LoW/hanzi-writer-data-jp" target="_blank" rel="noopener">@k1low/hanzi-writer-data-jp</a>（chanind版のフォーク）（Arphic Public License / LGPL）、表示：<a href="https://hanziwriter.org/" target="_blank" rel="noopener">Hanzi Writer</a>（MIT）。インターネットにつながっているときに使えます。</p>
 </main>
 <script src="data-grade1.js"></script>
@@ -61,5 +68,10 @@
 <script src="data-grade6.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="trace.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 </body>
 </html>

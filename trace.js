@@ -164,6 +164,42 @@
     i = (i + d + list.length) % list.length; select(list[i].k);
   }
 
+  /* ---------- 書き順データの一括保存（オフライン用） ---------- */
+  function saveAll() {
+    var msg = $('saveMsg'), btn = $('saveAllBtn');
+    if (!('caches' in window)) { msg.textContent = 'この端末では保存できません。'; return; }
+    var ks = ALL.map(function (e) { return e.k; }), i = 0, ok = 0, ng = 0;
+    btn.disabled = true; msg.textContent = '保存中… 0／' + ks.length;
+    caches.open('kanji-data-v1').then(function (c) {
+      function one(k) {
+        var urls = SOURCES.map(function (s) { return s + encodeURIComponent(k) + '.json'; });
+        return urls.reduce(function (p, url) {
+          return p.then(function (done) {
+            if (done) return true;
+            return c.match(url).then(function (hit) {
+              if (hit) return true;
+              return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return c.put(url, r).then(function () { return true; }); }).catch(function () { return false; });
+            });
+          });
+        }, Promise.resolve(false));
+      }
+      function worker() {
+        if (i >= ks.length) return Promise.resolve();
+        var k = ks[i++];
+        return one(k).then(function (r) {
+          if (r) ok++; else ng++;
+          msg.textContent = '保存中… ' + (ok + ng) + '／' + ks.length;
+        }).then(worker);
+      }
+      var ws = []; for (var n = 0; n < 6; n++) ws.push(worker());
+      return Promise.all(ws);
+    }).then(function () {
+      btn.disabled = false;
+      msg.textContent = ng ? ok + '字を保存しました。' + ng + '字は保存できませんでした（ネットを確かめて、もういちど押してください）。' : '1,026字ぜんぶ保存しました。ネットがなくても書き順を見られます。';
+    }, function () { btn.disabled = false; msg.textContent = '保存できませんでした。'; });
+  }
+  $('saveAllBtn').addEventListener('click', saveAll);
+
   $('watchBtn').addEventListener('click', watch);
   $('traceBtn').addEventListener('click', function () { quiz(true); });
   $('freeBtn').addEventListener('click', function () { quiz(false); });

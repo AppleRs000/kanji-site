@@ -79,5 +79,10 @@
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
 <script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 </body>
 </html>
