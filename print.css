@@ -80,7 +80,7 @@
 .practice-label { font-size:7pt; color:#666; }
 
 /* 読み（1枚目のモデル）：右に言葉（対象の漢字の右に線）、左に（　）の答えらん */
-.vt-body.read { flex-direction:row-reverse; align-items:flex-start; gap:3mm; padding-top:1mm; }
+.vt-body.read, .vt-body.write { flex-direction:row-reverse; align-items:flex-start; gap:3mm; padding-top:1mm; }
 .read-word { display:flex; flex-direction:column; align-items:center; flex:none; font-family:var(--kyo); line-height:1.35; }
 .read-word /* 縦書き：1文字ずつ積む */
 .ch { display:block; width:1em; text-align:center; line-height:1.12; }
@@ -89,7 +89,7 @@
 .read-word.sz-m { font-size:20pt; }
 .read-word.sz-s { font-size:17pt; }
 .read-word.sz-xs { font-size:14pt; }
-.read-ans-box { flex:none; width:11mm; height:52mm; border:.35mm solid #222; border-radius:5.5mm; display:flex; align-items:center; justify-content:center; }
+.read-ans-box { flex:none; width:11mm; height:52mm; border:.35mm solid #222; border-radius:0; display:flex; align-items:center; justify-content:center; }
 .read-ans-box .ans { display:flex; flex-direction:column; align-items:center; font-size:12pt; }
 
 .ans { color:#c0392b; font-weight:600; }
@@ -114,3 +114,7 @@
   .print-settings { padding:12px; }
   .preview-actions { flex-direction:column; }
 }
+
+/* 書き：右に問題（線の部分が読み）、左に答えのます */
+.w-ans { flex:none; width:14mm; display:flex; flex-direction:column; align-items:center; }
+.w-ans .practice { margin-top:2mm; padding-top:2mm; gap:1mm; }
