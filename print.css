@@ -31,10 +31,10 @@
   width:297mm; height:209mm; margin:12px auto; padding:8mm 10mm;
   background:#fff; box-shadow:0 2px 12px #0002; overflow:hidden;
   display:flex; flex-direction:column;
-  page-break-after:always; break-after:page;
   font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111;
 }
-.print-sheet:last-child { page-break-after:auto; break-after:auto; }
+.sheet-wrap { page-break-after:always; break-after:page; }
+.sheet-wrap:last-child { page-break-after:auto; break-after:auto; }
 
 /* 上部：タイトル／名前・日付・得点 */
 .sheet-top { display:flex; justify-content:space-between; align-items:flex-end; gap:6mm; padding-bottom:2mm; border-bottom:.5mm solid #222; }
@@ -70,9 +70,8 @@
 .w-main .fixed { display:flex; flex-direction:column; align-items:center; }
 .w-main .kbox { margin:1mm 0; }
 .kbox { position:relative; flex:none; width:var(--kb,14mm); height:var(--kb,14mm); border:.35mm solid #222; background:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--kyo); font-size:calc(var(--kb,14mm) * .55); writing-mode:horizontal-tb; }
-.kbox:before,.kbox:after { content:""; position:absolute; }
-.kbox:before { left:0; right:0; top:50%; border-top:.2mm dashed #999; }
-.kbox:after { top:0; bottom:0; left:50%; border-left:.2mm dashed #999; }
+.kx { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
+.kx line { stroke:#8a8a8a; stroke-width:.2mm; stroke-dasharray:1.2mm .9mm; vector-effect:non-scaling-stroke; }
 .kbox .ans { position:relative; z-index:1; }
 .kbox .ruby { position:absolute; right:100%; top:0; margin-right:1mm; display:flex; flex-direction:column; align-items:center; font-family:"Yu Gothic","Noto Sans JP",sans-serif; font-size:10pt; line-height:1; white-space:nowrap; }
 .kbox .ruby .ch { line-height:1.05; }
@@ -146,3 +145,9 @@
 .o-frame svg { display:block; width:100%; height:100%; }
 .o-frame i { position:absolute; left:.4mm; top:0; font-style:normal; font-size:5.5pt; color:#777; line-height:1.2; }
 .o-fail { font-size:10pt; color:#c0392b; }
+
+/* 縦向きの用紙に、内容を90度まわして印刷する（iPhone・iPad用） */
+@media print {
+  body.rot-print .sheet-wrap { position:relative; width:210mm; height:296mm; overflow:hidden; }
+  body.rot-print .print-sheet { position:absolute; left:0; top:0; transform-origin:0 0; transform:translate(206mm,4mm) scale(.97) rotate(90deg); }
+}

@@ -129,6 +129,9 @@
   /* 縦書きは1文字ずつ積む（フォントや印刷環境に左右されない） */
   function vt(s) { return Array.from(s).map(function (c) { return '<span class="ch">' + esc(c) + '</span>'; }).join(''); }
   function sizeClass(len) { return len <= 2 ? 'sz-l' : len === 3 ? 'sz-m' : len === 4 ? 'sz-s' : len <= 6 ? 'sz-xs' : 'sz-xxs'; }
+  /* 十字のますの線は、SVGで描く（印刷で細い点線が消えないように） */
+  var CROSS = '<svg class="kx" viewBox="0 0 10 10" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="5" x2="10" y2="5"/><line x1="5" y1="0" x2="5" y2="10"/></svg>';
+  function kbox(inner) { return '<span class="kbox">' + CROSS + (inner || '') + '</span>'; }
   function writeCell(q, no, answers, practice, trace) {
     var s = splitWord(q, selectedGrade);
     var inline = answers === 'inline';
@@ -137,10 +140,10 @@
     var len = s.found ? (s.pre + q.word.p + s.post).length : q.word.w.length;
     var sz = sizeClass(len);
     var pr = '';
-    for (var i = 0; i < practice; i++) pr += '<span class="kbox">' + (i === 0 && trace ? '<span class="trace-ghost">' + esc(q.entry.k) + '</span>' : '') + '</span>';
+    for (var i = 0; i < practice; i++) pr += kbox(i === 0 && trace ? '<span class="trace-ghost">' + esc(q.entry.k) + '</span>' : '');
     return '<div class="cell write-cell"><div class="q-number">' + no + '</div>' +
       '<div class="vt-body write"><div class="read-word ' + sz + '">' + word + '</div>' +
-      '<div class="w-ans"><span class="kbox">' + (inline ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') + '</span>' +
+      '<div class="w-ans">' + kbox(inline ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') +
       (pr ? '<div class="practice">' + pr + '</div>' : '') + '</div></div></div>';
   }
   function readCell(q, no, answers) {
@@ -155,13 +158,13 @@
 
   /* ---------- 1枚ぶんの HTML ---------- */
   function sheetHtml(o) {
-    return '<section class="print-sheet ' + (o.cls || '') + '">' +
+    return '<div class="sheet-wrap"><section class="print-sheet ' + (o.cls || '') + '">' +
       '<div class="sheet-top"><h2 class="sheet-title">' + o.title + '<small>' + o.sub + '</small></h2>' +
       '<div class="sheet-fields">' +
         '<span class="field">名前<span class="name-line"></span></span>' +
         '<span class="field date-field">日付　　　月　　　日</span>' +
         (o.score ? '<span class="field">点<span class="score-box">／ ' + o.score + '</span></span>' : '') +
-      '</div></div>' + o.body + '</section>';
+      '</div></div>' + o.body + '</section></div>';
   }
 
   function questionSheet(chunk, startNo, pageNo, pageTotal, type, answers, practice, total, trace) {
@@ -237,7 +240,7 @@
   function clearZoom() { Array.prototype.forEach.call(document.querySelectorAll('.print-sheet'), function (s) { s.style.zoom = ''; }); }
 
   /* ---------- 書き順の一覧（1画ずつ増える図）：データはネットから読みこむ ---------- */
-  var DATA_SOURCES = ['https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/', 'https://unpkg.com/hanzi-writer-data-jp@0/'];
+  var DATA_SOURCES = ['https://cdn.jsdelivr.net/npm/@k1low/hanzi-writer-data-jp@0/', 'https://unpkg.com/@k1low/hanzi-writer-data-jp@latest/', 'https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/', 'https://unpkg.com/hanzi-writer-data-jp@0/'];
   var strokeCache = {};
   function loadStrokes(k) {
     if (strokeCache[k]) return Promise.resolve(strokeCache[k]);
@@ -314,7 +317,18 @@
   /* ---------- ボタンの配線 ---------- */
   $('makeBtn').addEventListener('click', build);
   $('regenBtn').addEventListener('click', build);
-  $('printBtn').addEventListener('click', function () { clearZoom(); window.print(); setTimeout(fitPreview, 300); });
+  /* iPhone・iPad（Safari）は「横向き」の指定が効かず、縦向きの用紙に出てしまう。
+     そのときは、紙を縦向きにして、内容を90度まわして印刷する */
+  function setPageRule() {
+    var rot = $('rotPrint').checked;
+    document.body.classList.toggle('rot-print', rot);
+    var st = $('pageRule');
+    if (!st) { st = document.createElement('style'); st.id = 'pageRule'; document.head.appendChild(st); }
+    st.textContent = '@page { size: ' + (rot ? 'A4 portrait' : 'A4 landscape') + '; margin: 0; }';
+  }
+  try { if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('rotPrint').checked = true; } catch (e) {}
+  $('rotPrint').addEventListener('change', setPageRule);
+  $('printBtn').addEventListener('click', function () { setPageRule(); clearZoom(); window.print(); setTimeout(fitPreview, 300); });
   $('editBtn').addEventListener('click', function () { $('preview').hidden = true; $('settings').hidden = false; window.scrollTo(0, 0); });
   window.addEventListener('beforeprint', clearZoom);
   window.addEventListener('afterprint', fitPreview);

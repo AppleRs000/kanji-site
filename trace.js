@@ -6,6 +6,8 @@
   });
   var DONE_KEY = 'kanji-site-trace-v1';
   var SOURCES = [
+    'https://cdn.jsdelivr.net/npm/@k1low/hanzi-writer-data-jp@0/',
+    'https://unpkg.com/@k1low/hanzi-writer-data-jp@latest/',
     'https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/',
     'https://unpkg.com/hanzi-writer-data-jp@0/'
   ];
