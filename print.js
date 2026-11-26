@@ -1,126 +1,263 @@
 (function () {
   'use strict';
+  var PER_SHEET = 20;   /* 1枚の最大問題数（横10列 × 縦2段） */
+  var PER_ROW = 10;
+  var ANS_PER_SHEET = 50;
+
   var $ = function (id) { return document.getElementById(id); };
   var ALL = (window.KANJI_DATA || []).map(function (e) {
-    return { k:e[0], grade:e[1], on:e[2], kun:e[3], words:(e[4] || []).map(function(w){return {w:w[0],r:w[1],p:w[2]};}) };
+    return { k:e[0], grade:e[1], on:e[2], kun:e[3], words:(e[4] || []).map(function (w) { return { w:w[0], r:w[1], p:w[2] }; }) };
   });
   var selectedGrade = 3;
   var selected = new Set();
   var STORAGE_KEY = 'kanji-site-v1';
   var weak = {};
-  try { var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); weak = saved.miss || {}; } catch(e) {}
+  try { var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); weak = saved.miss || {}; } catch (e) {}
 
-  function esc(s) { return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-  function shuffle(a) { for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
-  function radio(name) { var el=document.querySelector('input[name="'+name+'"]:checked'); return el ? el.value : ''; }
+  /* ---------- 小さな道具 ---------- */
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+
+  /* ---------- まだ習っていない漢字は、ひらがなで見せる（app.js と同じ考え方） ---------- */
+  var G1 = '一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六';
+  var gradeOf = {};
+  ALL.forEach(function (e) { gradeOf[e.k] = e.grade; });
+  function isKanji(c) { return /[一-鿿]/.test(c); }
+  function unlearned(c, grade) {
+    if (!isKanji(c)) return false;
+    if (gradeOf[c] !== undefined) return gradeOf[c] > grade;
+    return G1.indexOf(c) < 0;
+  }
+  function hasUnlearned(s, grade) { for (var i = 0; i < s.length; i++) if (unlearned(s.charAt(i), grade)) return true; return false; }
+  function hasKanji(s) { for (var i = 0; i < s.length; i++) if (isKanji(s.charAt(i))) return true; return false; }
+
+  /* 例語を「漢字の前（pre）」と「うしろ（post＝送りがななど）」に分ける */
+  function splitWord(q, grade) {
+    var w = q.word.w, k = q.entry.k, r = q.word.r, p = q.word.p;
+    var i = w.indexOf(k);
+    if (i < 0) return { pre: w, post: '', found: false };
+    var pre = w.slice(0, i), post = w.slice(i + 1);
+    var plain = { pre: pre, post: post, found: true };
+    if (!hasUnlearned(pre, grade) && !hasUnlearned(post, grade)) return plain;
+    var j = r.indexOf(p);
+    while (j >= 0) {
+      var rPre = r.slice(0, j), rPost = r.slice(j + p.length);
+      var okPre = hasKanji(pre) || pre === rPre;
+      var okPost = hasKanji(post) || post === rPost;
+      if (okPre && okPost) {
+        return { pre: hasUnlearned(pre, grade) ? rPre : pre, post: hasUnlearned(post, grade) ? rPost : post, found: true };
+      }
+      j = r.indexOf(p, j + 1);
+    }
+    return plain;
+  }
+
+  /* ---------- 範囲・設定 ---------- */
   function pool() {
-    var scope=radio('scope');
-    if(scope==='grade') return ALL.filter(function(e){return e.grade===selectedGrade;});
-    if(scope==='review') return ALL.filter(function(e){return e.grade<=selectedGrade;});
-    if(scope==='weak') return ALL.filter(function(e){return e.grade<=selectedGrade && (weak[e.k]||0)>0;});
-    return ALL.filter(function(e){return selected.has(e.k) && e.grade<=selectedGrade;});
+    var scope = radio('scope');
+    if (scope === 'grade') return ALL.filter(function (e) { return e.grade === selectedGrade; });
+    if (scope === 'review') return ALL.filter(function (e) { return e.grade <= selectedGrade; });
+    if (scope === 'weak') return ALL.filter(function (e) { return e.grade <= selectedGrade && (weak[e.k] || 0) > 0; });
+    return ALL.filter(function (e) { return selected.has(e.k) && e.grade <= selectedGrade; });
+  }
+  function wantedCount() {
+    var c = radio('count') === 'custom' ? parseInt($('customCount').value, 10) : parseInt(radio('count'), 10);
+    if (!isFinite(c) || c < 1) c = 10;
+    return Math.min(c, 100);
   }
   function renderGrades() {
-    var box=$('gradeSelect');
-    var previous=selectedGrade;
-    box.innerHTML='';
-    for(var g=1;g<=6;g++){
-      var option=document.createElement('option');
-      option.value=String(g);
-      option.textContent=g+'年生（'+ALL.filter(function(e){return e.grade===g;}).length+'字）';
+    var box = $('gradeSelect');
+    box.innerHTML = '';
+    for (var g = 1; g <= 6; g++) {
+      var option = document.createElement('option');
+      option.value = String(g);
+      option.textContent = g + '年生（' + ALL.filter(function (e) { return e.grade === g; }).length + '字）';
       box.appendChild(option);
     }
-    box.value=String(previous);
-    box.addEventListener('change',function(){
-      selectedGrade=parseInt(box.value,10);
+    box.value = String(selectedGrade);
+    box.addEventListener('change', function () {
+      selectedGrade = parseInt(box.value, 10);
       renderKanji();
       updateStatus();
     });
   }
   function renderKanji() {
-    var box=$('kanjiList'); box.innerHTML='';
-    ALL.filter(function(e){return e.grade<=selectedGrade;}).forEach(function(e){
-      var label=document.createElement('label'); label.className='kanji-item';
-      var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=selected.has(e.k); cb.value=e.k;
-      cb.addEventListener('change',function(){if(cb.checked)selected.add(e.k);else selected.delete(e.k);updateStatus();});
+    var box = $('kanjiList'); box.innerHTML = '';
+    ALL.filter(function (e) { return e.grade <= selectedGrade; }).forEach(function (e) {
+      var label = document.createElement('label'); label.className = 'kanji-item';
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = selected.has(e.k); cb.value = e.k;
+      cb.addEventListener('change', function () { if (cb.checked) selected.add(e.k); else selected.delete(e.k); updateStatus(); });
       label.appendChild(cb); label.appendChild(document.createTextNode(e.k)); box.appendChild(label);
     });
   }
   function updateStatus() {
-    var p=pool(); $('status').textContent='出題できる漢字：'+p.length+'字';
+    var n = pool().length, want = wantedCount();
+    var t = '出題できる漢字：' + n + '字';
+    if (n && want > n) t += '（問題数は ' + n + '問になります）';
+    $('status').textContent = t;
   }
+
+  /* ---------- 問題づくり ---------- */
   function makeQuestions() {
-    var p=shuffle(pool().slice());
-    var type=radio('ptype');
-    var count=radio('count')==='custom' ? parseInt($('customCount').value,10) : parseInt(radio('count'),10);
-    if(!Number.isFinite(count)||count<1) count=10;
-    count=Math.min(Math.max(count,1),20);
-    if(!p.length) return [];
-    var out=[];
-    for(var i=0;i<count;i++){
-      var e=p[i%p.length];
-      var words=e.words.filter(function(w){return w.w && w.r && w.p;});
-      if(!words.length) continue;
-      var w=words[Math.floor(Math.random()*words.length)];
-      var t=type==='mix' ? (i%2===0?'write':'read') : type;
-      out.push({entry:e,word:w,type:t});
+    var p = shuffle(pool().slice());
+    var count = Math.min(wantedCount(), p.length);
+    var out = [];
+    for (var i = 0; i < p.length && out.length < count; i++) {
+      var e = p[i];
+      var words = e.words.filter(function (w) { return w.w && w.r && w.p; });
+      if (!words.length) continue;
+      out.push({ entry: e, word: words[Math.floor(Math.random() * words.length)], type: 'write' });
     }
     return out;
   }
-  function writeItem(q,i,answers) {
-    var prompt=q.word.p;
-    return '<div class="write-item"><div class="q-number">'+(i+1)+'</div><div class="write-content"><div class="write-prompt">'+esc(prompt)+'</div><div class="practice-box"></div>'+(answers==='inline'?'<span class="inline-answer">答え：'+esc(q.entry.k)+'</span>':'')+'</div></div>';
-  }
-  function readItem(q,i,answers) {
-    var w=q.word.w, k=q.entry.k, pos=w.indexOf(k);
-    var shown=pos<0?esc(w):esc(w.slice(0,pos))+'<u>'+esc(k)+'</u>'+esc(w.slice(pos+1));
-    return '<div class="read-item"><span class="read-number">('+ (i+1) +')</span><span class="read-word">'+shown+'</span>　（<span class="read-blank"></span>）'+(answers==='inline'?'<span class="inline-answer">答え：'+esc(q.word.r)+'</span>':'')+'</div>';
-  }
-  function page(title,sub,content,extra) {
-    return '<section class="print-sheet '+(extra||'')+'"><h2 class="sheet-title">'+title+'</h2><div class="sheet-meta"><span>'+sub+'</span><span>日付：　　月　　日</span></div><div class="sheet-meta"><span>名前：<span class="name-line"></span></span></div>'+content+'</section>';
-  }
-  function renderPrint(qs) {
-    var answers=radio('answers'), type=radio('ptype');
-    var isWrite=type==='write', isRead=type==='read';
-    var title=isWrite?'漢字のれんしゅう':isRead?'漢字の読み':'漢字の読み書き';
-    var instruction=isWrite?'ひらがなを漢字に直して、ていねいに書きましょう。':isRead?'漢字の読みを、ひらがなで書きましょう。':'問題に合わせて、読みや漢字を書きましょう。';
-    var chunkSize=isWrite?7:(isRead?18:8);
-    var pages=[];
-    for(var offset=0;offset<qs.length;offset+=chunkSize){
-      var chunk=qs.slice(offset,offset+chunkSize);
-      var content='<div class="worksheet-body"><p class="instruction">'+instruction+'</p>';
-      if(isWrite) content+='<div class="write-grid">'+chunk.map(function(q,j){return writeItem(q,offset+j,answers);}).join('')+'</div>';
-      else if(isRead) content+='<div class="read-grid">'+chunk.map(function(q,j){return readItem(q,offset+j,answers);}).join('')+'</div>';
-      else {
-        content+='<div class="write-grid">'+chunk.map(function(q,j){return q.type==='write'?writeItem(q,offset+j,answers):readItem(q,offset+j,answers);}).join('')+'</div>';
-      }
-      content+='</div>';
-      pages.push(page(title,selectedGrade+'年生・'+(isWrite?'書き':isRead?'読み':'読み書き')+'　全'+qs.length+'問',content,''));
+
+  /* 1枚ごとに「上の段／下の段」へ振り分ける。両方のときは 上＝読み・下＝書き */
+  function assignTypes(qs, type) {
+    var pages = [];
+    for (var off = 0; off < qs.length; off += PER_SHEET) {
+      var chunk = qs.slice(off, off + PER_SHEET);
+      var nRead = type === 'read' ? chunk.length : type === 'write' ? 0 : Math.ceil(chunk.length / 2);
+      chunk.forEach(function (q, i) { q.type = i < nRead ? 'read' : 'write'; });
+      pages.push(chunk);
     }
-    var html=pages.join('');
-    if(answers==='separate'){
-      var rows=qs.map(function(q,i){return '<div class="answer-row"><strong>'+(i+1)+'.</strong>'+esc(q.type==='write'?q.entry.k:q.word.r)+'</div>';}).join('');
-      html+=page('解答',selectedGrade+'年生・解答', '<div class="answer-list">'+rows+'</div>','answer-sheet');
-    }
-    $('paperOutput').innerHTML=html;
-    $('settings').hidden=true; $('preview').hidden=false; window.scrollTo(0,0);
+    return pages;
   }
-  $('makeBtn').addEventListener('click',function(){
-    var qs=makeQuestions();
-    if(!qs.length){$('status').textContent='出題できる漢字がありません。範囲を確認してください。';return;}
-    renderPrint(qs);
+
+  /* ---------- 1問ぶんの HTML ---------- */
+  function writeCell(q, no, answers, practice) {
+    var s = splitWord(q, selectedGrade);
+    var inline = answers === 'inline';
+    var long = (s.pre.length + s.post.length) >= 3;
+    var row = '';
+    if (s.pre) row += '<span class="fixed">' + esc(s.pre) + '</span>';
+    row += '<span class="kbox">' + (inline ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') + '</span>';
+    if (s.post) row += '<span class="fixed">' + esc(s.post) + '</span>';
+    var pr = '';
+    if (practice > 0) {
+      pr = '<div class="practice"><span class="practice-label">れんしゅう</span>';
+      for (var i = 0; i < practice; i++) pr += '<span class="kbox"></span>';
+      pr += '</div>';
+    }
+    return '<div class="cell write-cell"><div class="q-number">' + no + '</div>' +
+      '<div class="write-prompt">' + esc(q.word.p) + '</div>' +
+      '<div class="write-row' + (long ? ' long' : '') + '">' + row + '</div>' + pr + '</div>';
+  }
+  function readCell(q, no, answers) {
+    var s = splitWord(q, selectedGrade);
+    var shown = s.found ? esc(s.pre) + '<u>' + esc(q.entry.k) + '</u>' + esc(s.post) : esc(q.word.w);
+    var len = (s.pre + q.entry.k + s.post).length;
+    var sz = len <= 2 ? 'sz-l' : len === 3 ? 'sz-m' : len === 4 ? 'sz-s' : 'sz-xs';
+    return '<div class="cell read-cell"><div class="q-number">' + no + '</div>' +
+      '<div class="read-word ' + sz + '">' + shown + '</div>' +
+      '<div class="read-box">' + (answers === 'inline' ? '<span class="ans">' + esc(q.word.r) + '</span>' : '') + '</div></div>';
+  }
+
+  /* ---------- 1枚ぶんの HTML ---------- */
+  function sheetHtml(o) {
+    return '<section class="print-sheet ' + (o.cls || '') + '">' +
+      '<div class="sheet-top"><h2 class="sheet-title">' + o.title + '<small>' + o.sub + '</small></h2>' +
+      '<div class="sheet-fields">' +
+        '<span class="field">名前<span class="name-line"></span></span>' +
+        '<span class="field date-field">日付　　　月　　　日</span>' +
+        (o.score ? '<span class="field">点<span class="score-box">／ ' + o.score + '</span></span>' : '') +
+      '</div></div>' + o.body + '</section>';
+  }
+
+  function questionSheet(chunk, startNo, pageNo, pageTotal, type, answers, practice, total) {
+    var no = startNo;
+    var reads = chunk.filter(function (q) { return q.type === 'read'; });
+    var writes = chunk.filter(function (q) { return q.type === 'write'; });
+    var rowsHtml = '';
+    function row(list, label, builder) {
+      if (!list.length) return;
+      var cells = list.map(function (q) { return builder(q, no++); }).join('');
+      for (var i = list.length; i < PER_ROW; i++) cells += '<div class="cell empty"></div>';
+      rowsHtml += '<div class="q-row-wrap">' + (label ? '<p class="row-label">' + label + '</p>' : '') + '<div class="q-row">' + cells + '</div></div>';
+    }
+    /* 1段に入るのは最大10問。書きだけ・読みだけのときは、20問を上下2段に分ける */
+    function rowsOf(list) { var a = []; for (var i = 0; i < list.length; i += PER_ROW) a.push(list.slice(i, i + PER_ROW)); return a; }
+    var isMix = type === 'mix';
+    rowsOf(reads).forEach(function (r, i) {
+      row(r, isMix ? '【読み】下線の漢字の読みを、ひらがなで書きましょう。' : '', function (q, n) { return readCell(q, n, answers); });
+    });
+    rowsOf(writes).forEach(function (r, i) {
+      row(r, isMix ? '【書き】線の部分を漢字で書きましょう（送りがなは書きません）。' : '', function (q, n) { return writeCell(q, n, answers, practice); });
+    });
+    var instruction = '';
+    if (type === 'read') instruction = '下線の漢字の読みを、ひらがなで書きましょう。';
+    if (type === 'write') instruction = '線の部分を漢字で書きましょう。送りがな・ほかの字はすでに書いてあります。';
+    var body = (instruction ? '<p class="sheet-instruction">' + instruction + '</p>' : '') + '<div class="q-rows">' + rowsHtml + '</div>';
+    var typeName = type === 'write' ? '書き' : type === 'read' ? '読み' : '読み・書き';
+    var title = type === 'write' ? '漢字のれんしゅう（書き）' : type === 'read' ? '漢字のれんしゅう（読み）' : '漢字のれんしゅう（読み・書き）';
+    var sub = selectedGrade + '年生' + (pageTotal > 1 ? '　' + pageNo + '／' + pageTotal + '枚目' : '');
+    return sheetHtml({ title: title, sub: sub, body: body, score: chunk.length });
+  }
+
+  function answerSheets(pages, type, startPage) {
+    var flat = [];
+    pages.forEach(function (c) { c.forEach(function (q) { flat.push(q); }); });
+    var html = '', n = Math.ceil(flat.length / ANS_PER_SHEET);
+    for (var off = 0; off < flat.length; off += ANS_PER_SHEET) {
+      var rows = flat.slice(off, off + ANS_PER_SHEET).map(function (q, i) {
+        var s = splitWord(q, selectedGrade);
+        var shownWord = s.found ? s.pre + q.entry.k + s.post : q.word.w;
+        var main = q.type === 'write' ? q.entry.k : q.word.r;
+        var small = q.type === 'write' ? shownWord : shownWord;
+        return '<div class="answer-row"><strong>' + (off + i + 1) + '.</strong><span class="ans-main">' + esc(main) + '</span><small>' + esc(small) + '</small></div>';
+      }).join('');
+      html += sheetHtml({ title: '解答', sub: selectedGrade + '年生' + (n > 1 ? '　' + (off / ANS_PER_SHEET + 1) + '／' + n : ''), cls: 'answer-sheet',
+        body: '<div class="answer-list">' + rows + '</div>' });
+    }
+    return html;
+  }
+
+  /* ---------- 画面に出す ---------- */
+  function fitPreview() {
+    var out = $('paperOutput');
+    var sheets = out.querySelectorAll('.print-sheet');
+    if (!sheets.length) return;
+    var px = 297 / 25.4 * 96;
+    var z = Math.min(1, (out.clientWidth || px) / px);
+    Array.prototype.forEach.call(sheets, function (s) { s.style.zoom = z; });
+  }
+  function clearZoom() { Array.prototype.forEach.call(document.querySelectorAll('.print-sheet'), function (s) { s.style.zoom = ''; }); }
+
+  function build() {
+    var qs = makeQuestions();
+    if (!qs.length) { $('status').textContent = '出題できる漢字がありません。範囲を確認してください。'; return false; }
+    var type = radio('ptype'), answers = radio('answers');
+    var practice = parseInt(radio('practice'), 10) || 0;
+    var pages = assignTypes(qs, type);
+    var html = '', no = 1;
+    pages.forEach(function (chunk, i) {
+      html += questionSheet(chunk, no, i + 1, pages.length, type, answers, practice, qs.length);
+      no += chunk.length;
+    });
+    if (answers === 'separate') html += answerSheets(pages, type);
+    $('paperOutput').innerHTML = html;
+    $('settings').hidden = true; $('preview').hidden = false;
+    fitPreview(); window.scrollTo(0, 0);
+    return true;
+  }
+
+  /* ---------- ボタンの配線 ---------- */
+  $('makeBtn').addEventListener('click', build);
+  $('regenBtn').addEventListener('click', build);
+  $('printBtn').addEventListener('click', function () { clearZoom(); window.print(); setTimeout(fitPreview, 300); });
+  $('editBtn').addEventListener('click', function () { $('preview').hidden = true; $('settings').hidden = false; window.scrollTo(0, 0); });
+  window.addEventListener('beforeprint', clearZoom);
+  window.addEventListener('afterprint', fitPreview);
+  window.addEventListener('resize', fitPreview);
+
+  document.querySelectorAll('input[name="scope"]').forEach(function (el) {
+    el.addEventListener('change', function () { $('kanjiPicker').hidden = radio('scope') !== 'custom'; updateStatus(); });
   });
-  $('printBtn').addEventListener('click',function(){window.print();});
-  $('editBtn').addEventListener('click',function(){$('preview').hidden=true;$('settings').hidden=false;window.scrollTo(0,0);});
-  document.querySelectorAll('input[name="scope"]').forEach(function(el){el.addEventListener('change',function(){$('kanjiPicker').hidden=radio('scope')!=='custom';updateStatus();});});
-  document.querySelectorAll('input[name="ptype"]').forEach(function(el){el.addEventListener('change',updateStatus);});
-  document.querySelectorAll('input[name="count"]').forEach(function(el){el.addEventListener('change',function(){$('customCount').disabled=radio('count')!=='custom';});});
-  $('customCount').disabled=true;
-  $('customCount').addEventListener('input',function(){var r=document.querySelector('input[name="count"][value="custom"]'); if(r)r.checked=true;});
-  var custom=document.createElement('input'); custom.type='radio'; custom.name='count'; custom.value='custom'; custom.id='customCountRadio';
-  var label=document.querySelector('.custom-count'); label.insertBefore(custom,label.firstChild);
-  custom.addEventListener('change',function(){$('customCount').disabled=false;});
-  $('selectAll').addEventListener('click',function(){ALL.filter(function(e){return e.grade<=selectedGrade;}).forEach(function(e){selected.add(e.k);});renderKanji();updateStatus();});
-  $('clearAll').addEventListener('click',function(){selected.clear();renderKanji();updateStatus();});
+  document.querySelectorAll('input[name="count"]').forEach(function (el) { el.addEventListener('change', updateStatus); });
+  $('customCount').addEventListener('input', function () {
+    var r = document.querySelector('input[name="count"][value="custom"]'); if (r) r.checked = true; updateStatus();
+  });
+  $('selectAll').addEventListener('click', function () { ALL.filter(function (e) { return e.grade <= selectedGrade; }).forEach(function (e) { selected.add(e.k); }); renderKanji(); updateStatus(); });
+  $('clearAll').addEventListener('click', function () { selected.clear(); renderKanji(); updateStatus(); });
   renderGrades(); renderKanji(); updateStatus();
 })();

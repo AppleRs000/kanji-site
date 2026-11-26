@@ -13,7 +13,7 @@
   <header class="print-header">
     <a href="index.html" class="back-link">← れんしゅうにもどる</a>
     <h1>漢字プリント作成</h1>
-    <p>学年・範囲・問題の種類を選んで、プリントを作ろう。</p>
+    <p>学年・範囲・問題の種類を選んで、プリントを作ろう。（A4横・1枚20問まで）</p>
   </header>
 
   <section id="settings" class="print-settings">
@@ -42,16 +42,25 @@
       <label class="type-option"><input type="radio" name="ptype" value="read"> 読み</label>
       <label class="type-option"><input type="radio" name="ptype" value="mix"> 両方</label>
     </div>
+    <p class="hint">「両方」は、上の段が読み・下の段が書きになります。</p>
 
-    <h2>4. 問題数</h2>
+    <h2>4. 問題数（1枚20問まで。超えると2枚目以降に続きます）</h2>
     <div class="count-row">
       <label><input type="radio" name="count" value="5"> 5問</label>
       <label><input type="radio" name="count" value="10" checked> 10問</label>
       <label><input type="radio" name="count" value="20"> 20問</label>
-      <label class="custom-count">指定 <input id="customCount" type="number" min="1" max="20" value="10"> 問</label>
+      <label class="custom-count"><input type="radio" name="count" value="custom"> 指定 <input id="customCount" type="number" min="1" max="100" value="10"> 問</label>
     </div>
 
-    <h2>5. 解答の表示</h2>
+    <h2>5. 書きの練習ます</h2>
+    <div class="count-row">
+      <label><input type="radio" name="practice" value="0"> なし</label>
+      <label><input type="radio" name="practice" value="1"> 1つ</label>
+      <label><input type="radio" name="practice" value="2" checked> 2つ</label>
+    </div>
+    <p class="hint">答えを書くますの下に、同じ漢字をくり返し書く練習ますがつきます。</p>
+
+    <h2>6. 解答の表示</h2>
     <div class="choice-grid cols-1">
       <label class="scope-option"><input type="radio" name="answers" value="none" checked> 問題プリントのみ</label>
       <label class="scope-option"><input type="radio" name="answers" value="separate"> 解答を別のページにする</label>
@@ -67,8 +76,10 @@
   <section id="preview" hidden>
     <div class="preview-actions no-print">
       <button type="button" id="editBtn" class="secondary">設定にもどる</button>
+      <button type="button" id="regenBtn" class="secondary">同じ設定で作りなおす</button>
       <button type="button" id="printBtn" class="primary">印刷・PDF保存</button>
     </div>
+    <p class="note no-print">印刷の設定は「A4・横向き・余白なし（なし／最小）・倍率100%」にしてください。</p>
     <div id="paperOutput"></div>
   </section>
 </main>

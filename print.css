@@ -1,4 +1,4 @@
-/* プリント作成画面 */
+/* ===== プリント作成画面 ===== */
 #printApp { max-width: 850px; margin: 0 auto; padding: 16px; }
 .print-header { text-align:center; }
 .print-header h1 { margin:12px 0 4px; }
@@ -6,7 +6,7 @@
 .back-link { color:var(--main-dark); font-weight:700; text-decoration:none; }
 .print-settings { background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px; }
 .scope-option,.type-option { display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--line); border-radius:12px; padding:12px; font-size:16px; }
-.scope-option input,.type-option input,.count-row input { accent-color:var(--main); transform:scale(1.15); }
+.scope-option input,.type-option input,.count-row input[type=radio] { accent-color:var(--main); transform:scale(1.15); }
 .type-option { justify-content:center; }
 .kanji-picker { margin-top:12px; padding:12px; background:#fffaf1; border-radius:12px; border:1px solid var(--line); }
 .picker-tools { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
@@ -16,68 +16,90 @@
 .kanji-item input { accent-color:var(--main); }
 .count-row { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; }
 .count-row label { display:flex; align-items:center; gap:6px; }
-.custom-count input { width:68px; padding:7px; border:1px solid var(--line); border-radius:8px; font:inherit; }
+.custom-count input[type=number] { width:68px; padding:7px; border:1px solid var(--line); border-radius:8px; font:inherit; }
+.hint { margin:6px 0 0; font-size:13px; color:#8a7b5c; }
 .action-row { margin-top:20px; }
 .preview-actions { display:flex; gap:12px; margin:16px 0; }
 .preview-actions button { flex:1; margin:0; }
 .note { text-align:center; color:#765; }
 #paperOutput { color:#111; }
+.grade-select { display:block; width:100%; max-width:320px; min-height:48px; padding:10px 14px; border:2px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font:inherit; font-size:18px; cursor:pointer; }
+.grade-select:focus { outline:3px solid #b8ded3; border-color:var(--main); }
 
-/* 印刷用紙：A4横・国語の縦書き */
-.print-sheet { width:297mm; min-height:210mm; margin:12px auto; padding:9mm 13mm; background:#fff; box-shadow:0 2px 12px #0002; page-break-after:always; break-after:page; font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111; }
+/* ===== 印刷用紙：A4横・横書き（縦2段 × 横10列 = 1枚20問） ===== */
+.print-sheet {
+  width:297mm; height:209mm; margin:12px auto; padding:8mm 10mm;
+  background:#fff; box-shadow:0 2px 12px #0002; overflow:hidden;
+  display:flex; flex-direction:column;
+  page-break-after:always; break-after:page;
+  font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111;
+}
 .print-sheet:last-child { page-break-after:auto; break-after:auto; }
-.sheet-title { text-align:center; font-size:19pt; font-weight:700; margin:0 0 3mm; letter-spacing:.08em; }
-.sheet-meta { display:flex; justify-content:space-between; font-size:10pt; margin-bottom:2mm; }
-.name-line { border-bottom:1px solid #222; display:inline-block; min-width:55mm; height:6mm; vertical-align:bottom; }
-.worksheet-body { height:158mm; margin-top:3mm; writing-mode:vertical-rl; text-orientation:mixed; }
-.instruction { font-size:11pt; margin:0 0 0 5mm; }
-.write-grid { height:100%; display:grid; grid-auto-flow:column; grid-auto-columns:29mm; grid-template-rows:1fr; gap:4mm; align-items:start; }
-.write-item { width:29mm; display:block; break-inside:avoid; }
-.q-number { width:7mm; height:7mm; border:1px solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:10pt; margin:0 auto 2mm; }
-.write-content { min-width:0; text-align:center; }
-.write-prompt { font-size:12pt; margin:0 auto 2mm; }
-.practice-box { width:17mm; height:65mm; max-height:75mm; margin:0 auto; border:1px solid #222; position:relative; }
-.practice-box:after { content:""; position:absolute; top:0; bottom:0; left:50%; border-left:1px dashed #777; }
-.read-grid { height:100%; display:grid; grid-auto-flow:column; grid-auto-columns:29mm; grid-template-rows:1fr; column-gap:4mm; align-items:start; }
-.read-item { width:29mm; height:110mm; font-family:var(--kyo); font-size:13pt; line-height:1.7; border-left:1px solid #aaa; padding:1mm 2mm; break-inside:avoid; }
-.read-number { font-family:Arial,sans-serif; font-size:10pt; margin-bottom:2mm; }
-.read-word { font-weight:600; }
-.read-blank { display:inline-block; min-width:1.2em; height:22mm; border-left:1px solid #111; vertical-align:middle; }
-.write-grid .read-item { height:110mm; }
-.inline-answer { display:block; font-family:sans-serif; font-size:8pt; color:#555; margin-top:1mm; }
-.answer-sheet .answer-list { display:grid; grid-template-columns:1fr 1fr; gap:4mm 8mm; font-size:12pt; }
-.answer-row { border-bottom:1px dotted #999; padding:2mm 0; }
-.answer-row strong { margin-right:3mm; }
+
+/* 上部：タイトル／名前・日付・得点 */
+.sheet-top { display:flex; justify-content:space-between; align-items:flex-end; gap:6mm; padding-bottom:2mm; border-bottom:.5mm solid #222; }
+.sheet-title { margin:0; font-size:17pt; font-weight:700; letter-spacing:.06em; white-space:nowrap; }
+.sheet-title small { margin-left:4mm; font-size:10pt; font-weight:400; letter-spacing:0; }
+.sheet-fields { display:flex; align-items:flex-end; gap:6mm; font-size:11pt; white-space:nowrap; }
+.field { display:inline-flex; align-items:flex-end; gap:1.5mm; }
+.name-line { display:inline-block; width:62mm; height:8mm; border-bottom:.3mm solid #222; }
+.date-field { letter-spacing:.05em; }
+.score-box { display:inline-block; min-width:26mm; height:10mm; padding:0 2mm; border:.35mm solid #222; border-radius:2mm; text-align:right; line-height:10mm; font-size:10pt; }
+.sheet-instruction { margin:2mm 0 1.5mm; font-size:10.5pt; }
+
+/* 問題エリア：2段 */
+.q-rows { flex:1; min-height:0; display:flex; flex-direction:column; gap:2mm; }
+.q-row-wrap { flex:1; min-height:0; display:flex; flex-direction:column; }
+.row-label { margin:0 0 1mm; font-size:10pt; font-weight:700; }
+.q-row { flex:1; min-height:0; display:grid; grid-template-columns:repeat(10,1fr); gap:1.6mm; }
+.cell { min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; align-items:center; padding:1.5mm 1mm; border:.3mm solid #888; border-radius:2mm; }
+.cell.empty { border:0; }
+.q-number { flex:none; width:6.5mm; height:6.5mm; border:.3mm solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:9.5pt; margin-bottom:1.5mm; }
+
+/* 書き：読み（下線）→ 答えのます＋送りがな → 練習ます */
+.write-prompt { flex:none; font-size:12.5pt; line-height:1.2; padding:0 1mm .3mm; border-bottom:.35mm solid #111; margin-bottom:1.5mm; text-align:center; }
+.write-row { flex:none; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; font-family:var(--kyo); font-size:15pt; line-height:1.1; max-width:100%; margin-bottom:2mm; }
+.write-row.long { font-size:11pt; }
+.write-row .fixed { display:inline-block; }
+.practice { flex:none; display:flex; flex-direction:column; align-items:center; gap:1mm; padding-top:2mm; border-top:.25mm dashed #999; width:100%; }
+.practice-label { font-size:7.5pt; color:#666; }
+.kbox { position:relative; flex:none; width:14mm; height:14mm; border:.35mm solid #222; background:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--kyo); font-size:22pt; }
+.kbox:before,.kbox:after { content:""; position:absolute; }
+.kbox:before { left:0; right:0; top:50%; border-top:.2mm dashed #999; }
+.kbox:after { top:0; bottom:0; left:50%; border-left:.2mm dashed #999; }
+.kbox .ans { position:relative; z-index:1; }
+
+/* 読み：漢字（下線）→ 読みを書くらん */
+.read-word { flex:none; text-align:center; font-family:var(--kyo); line-height:1.3; margin:1mm 0 3mm; word-break:keep-all; }
+.read-word u { text-decoration:none; border-bottom:.5mm solid #111; padding-bottom:.3mm; }
+.read-word.sz-l { font-size:24pt; }
+.read-word.sz-m { font-size:19pt; }
+.read-word.sz-s { font-size:15pt; }
+.read-word.sz-xs { font-size:12pt; }
+.read-box { position:relative; flex:none; width:100%; height:21mm; border:.35mm solid #222; display:flex; align-items:center; justify-content:center; text-align:center; }
+.read-box:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:.2mm dashed #999; }
+.read-box .ans { position:relative; z-index:1; font-size:11pt; line-height:1.15; }
+.read-hint { margin-top:1mm; font-size:7.5pt; color:#666; }
+
+.ans { color:#c0392b; font-weight:600; }
+
+/* 解答ページ */
+.answer-sheet .answer-list { flex:1; display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:min-content; gap:0 8mm; margin-top:4mm; font-size:12pt; align-content:start; }
+.answer-row { display:flex; align-items:baseline; gap:2mm; border-bottom:.2mm dotted #888; padding:1.6mm 0; min-width:0; }
+.answer-row strong { flex:none; min-width:7mm; }
+.answer-row .ans-main { font-family:var(--kyo); font-size:14pt; }
+.answer-row small { margin-left:auto; font-size:8.5pt; color:#666; white-space:nowrap; }
+
 @page { size:A4 landscape; margin:0; }
 @media print {
-  body { background:#fff !important; }
+  html,body { background:#fff !important; }
   #printApp { max-width:none; padding:0; margin:0; }
   .print-header,.print-settings,.no-print { display:none !important; }
   #preview { display:block !important; }
-  .print-sheet { width:297mm; min-height:210mm; margin:0; padding:9mm 13mm; box-shadow:none; }
+  .print-sheet { zoom:1 !important; margin:0; box-shadow:none; }
 }
 @media screen and (max-width:600px) {
   #printApp { padding:10px; }
   .print-settings { padding:12px; }
   .preview-actions { flex-direction:column; }
-  .print-sheet { width:100%; min-height:0; padding:18px; }
-}
-
-.grade-select {
-  display:block;
-  width:100%;
-  max-width:320px;
-  min-height:48px;
-  padding:10px 14px;
-  border:2px solid var(--line);
-  border-radius:12px;
-  background:#fff;
-  color:var(--ink);
-  font:inherit;
-  font-size:18px;
-  cursor:pointer;
-}
-.grade-select:focus {
-  outline:3px solid #b8ded3;
-  border-color:var(--main);
 }
