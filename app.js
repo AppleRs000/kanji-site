@@ -441,7 +441,8 @@
         var d = document.createElement('div');
         d.className = 'miss-item';
         d.innerHTML = '<span class="kanji">' + esc(q.entry.k) + '</span>' +
-          '<span class="miss-text">' + esc(shownWord(q)) + '（' + esc(q.word.r) + '）</span>';
+          '<span class="miss-text">' + esc(shownWord(q)) + '（' + esc(q.word.r) + '）</span>' +
+          '<a class="miss-trace" href="trace.html?k=' + encodeURIComponent(q.entry.k) + '">かきじゅん</a>';
         list.appendChild(d);
       });
     }
