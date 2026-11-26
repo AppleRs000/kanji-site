@@ -9,6 +9,7 @@
     return { k:e[0], grade:e[1], on:e[2], kun:e[3], words:(e[4] || []).map(function (w) { return { w:w[0], r:w[1], p:w[2] }; }) };
   });
   var selectedGrade = 3;
+  var isTest = false;
   var selected = new Set();
   var STORAGE_KEY = 'kanji-site-v1';
   var weak = {};
@@ -168,9 +169,11 @@
     var reads = chunk.filter(function (q) { return q.type === 'read'; });
     var writes = chunk.filter(function (q) { return q.type === 'write'; });
     var rowsHtml = '';
-    /* 10問以下のときは、1段5問にして、ますや字を大きくする */
-    var big = chunk.length <= 10;
-    var perRow = big ? 5 : PER_ROW;
+    /* 1段の問題数：10問以下は5問ずつ（大きく）。それより多いときは上下2段に等分する */
+    var isMix = type === 'mix';
+    var maxList = isMix ? Math.max(reads.length, writes.length) : chunk.length;
+    var perRow = chunk.length <= 10 ? 5 : Math.max(5, Math.ceil(maxList / Math.ceil(maxList / PER_ROW)));
+    var big = perRow <= 6;
     function row(list, label, builder) {
       if (!list.length) return;
       var cells = list.map(function (q) { return builder(q, no++); }).join('');
@@ -179,7 +182,6 @@
     }
     /* 1段に入るのは、ふつう10問（大きいときは5問）。20問は上下2段に分ける */
     function rowsOf(list) { var a = []; for (var i = 0; i < list.length; i += perRow) a.push(list.slice(i, i + perRow)); return a; }
-    var isMix = type === 'mix';
     var nRows = rowsOf(reads).length + rowsOf(writes).length;
     rowsOf(reads).forEach(function (r, i) {
       row(r, isMix ? '【読み】下線の漢字の読みを、ひらがなで書きましょう。' : '', function (q, n) { return readCell(q, n, answers); });
@@ -190,14 +192,17 @@
     /* 練習ますの大きさ：幅と高さの両方に収まる大きさにする（mm） */
     var rowH = (193 - 18 - (isMix ? 0 : 8) - 2 * (nRows - 1)) / nRows - (isMix ? 6 : 0);
     var nBox = 1 + practice;
-    var kb = Math.min(big ? 22 : 14, (rowH - 11 - 1.5 * nBox) / nBox);
+    var cellW = (277 - 1.6 * (perRow - 1)) / perRow - 2;
+    var capW = Math.floor(cellW - (big ? 14 : 9) - (big ? 4 : 2) - 2);
+    var kb = Math.min(22, Math.max(14, capW), (rowH - 11 - 1.5 * nBox) / nBox);
     kb = Math.max(8, Math.floor(kb * 2) / 2);
     var instruction = '';
     if (type === 'read') instruction = '下線の漢字の読みを、ひらがなで書きましょう。';
     if (type === 'write') instruction = '線の部分を、左のますに漢字で書きましょう。（送りがなは書きません）';
     var body = (instruction ? '<p class="sheet-instruction">' + instruction + '</p>' : '') + '<div class="q-rows' + (big ? ' big' : '') + '" style="--kb:' + kb + 'mm">' + rowsHtml + '</div>';
     var typeName = type === 'write' ? '書き' : type === 'read' ? '読み' : '読み・書き';
-    var title = type === 'write' ? '漢字のれんしゅう（書き）' : type === 'read' ? '漢字のれんしゅう（読み）' : '漢字のれんしゅう（読み・書き）';
+    var base = isTest ? '漢字テスト' : '漢字のれんしゅう';
+    var title = type === 'write' ? base + '（書き）' : type === 'read' ? base + '（読み）' : base + '（読み・書き）';
     var sub = selectedGrade + '年生' + (pageTotal > 1 ? '　' + pageNo + '／' + pageTotal + '枚目' : '');
     return sheetHtml({ title: title, sub: sub, body: body, score: chunk.length });
   }
@@ -231,22 +236,78 @@
   }
   function clearZoom() { Array.prototype.forEach.call(document.querySelectorAll('.print-sheet'), function (s) { s.style.zoom = ''; }); }
 
+  /* ---------- 書き順の一覧（1画ずつ増える図）：データはネットから読みこむ ---------- */
+  var DATA_SOURCES = ['https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/', 'https://unpkg.com/hanzi-writer-data-jp@0/'];
+  var strokeCache = {};
+  function loadStrokes(k) {
+    if (strokeCache[k]) return Promise.resolve(strokeCache[k]);
+    var i = 0;
+    function next() {
+      if (i >= DATA_SOURCES.length) return Promise.resolve(null);
+      var url = DATA_SOURCES[i++] + encodeURIComponent(k) + '.json';
+      return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(next);
+    }
+    return next().then(function (d) { if (d && d.strokes) strokeCache[k] = d; return d && d.strokes ? d : null; });
+  }
+  var NS = 'http://www.w3.org/2000/svg';
+  function frameHtml(strokes, n) {
+    var paths = '';
+    for (var i = 0; i <= n; i++) paths += '<path d="' + strokes[i] + '" fill="' + (i === n ? '#d9534f' : '#333') + '"/>';
+    return '<div class="o-frame"><svg viewBox="0 0 1024 1024"><g transform="translate(0,900) scale(1,-1)">' + paths + '</g></svg><i>' + (n + 1) + '</i></div>';
+  }
+  var O_PER_ROW = 19, O_ROWS_PER_SHEET = 10;
+  function orderSheets(kanjis, map) {
+    var rows = [];
+    kanjis.forEach(function (k) {
+      var d = map[k];
+      if (!d) { rows.push('<div class="o-row"><div class="o-label">' + esc(k) + '</div><span class="o-fail">書き順データを読みこめませんでした</span></div>'); return; }
+      for (var off = 0; off < d.strokes.length; off += O_PER_ROW) {
+        var cells = off === 0 ? '<div class="o-label">' + esc(k) + '</div>' : '<div class="o-label o-blank"></div>';
+        for (var n = off; n < Math.min(d.strokes.length, off + O_PER_ROW); n++) cells += frameHtml(d.strokes, n);
+        rows.push('<div class="o-row">' + cells + '</div>');
+      }
+    });
+    var html = '', total = Math.ceil(rows.length / O_ROWS_PER_SHEET);
+    for (var p = 0; p < total; p++) {
+      html += sheetHtml({ title: '書き順の一覧', sub: selectedGrade + '年生' + (total > 1 ? '　' + (p + 1) + '／' + total : ''), cls: 'order-sheet',
+        body: '<div class="order-list">' + rows.slice(p * O_ROWS_PER_SHEET, (p + 1) * O_ROWS_PER_SHEET).join('') + '</div>' });
+    }
+    return html;
+  }
+
+  var building = false;
+  function show(html) {
+    $('paperOutput').innerHTML = html;
+    $('settings').hidden = true; $('preview').hidden = false;
+    fitPreview(); window.scrollTo(0, 0);
+  }
   function build() {
+    if (building) return false;
     var qs = makeQuestions();
     if (!qs.length) { $('status').textContent = '出題できる漢字がありません。範囲を確認してください。'; return false; }
     var type = radio('ptype'), answers = radio('answers');
-    var practice = parseInt(radio('practice'), 10) || 0;
-    var trace = $('traceFirst').checked;
+    isTest = radio('pmode') === 'test';
+    var practice = isTest ? 0 : (parseInt(radio('practice'), 10) || 0);
+    var trace = !isTest && $('traceFirst').checked;
     var pages = assignTypes(qs, type);
     var html = '', no = 1;
     pages.forEach(function (chunk, i) {
       html += questionSheet(chunk, no, i + 1, pages.length, type, answers, practice, qs.length, trace);
       no += chunk.length;
     });
-    if (answers === 'separate') html += answerSheets(pages, type);
-    $('paperOutput').innerHTML = html;
-    $('settings').hidden = true; $('preview').hidden = false;
-    fitPreview(); window.scrollTo(0, 0);
+    var tail = answers === 'separate' ? answerSheets(pages, type) : '';
+    if (!$('orderSheet').checked) { show(html + tail); return true; }
+    /* 書き順の一覧つき：データを読みこんでから出す */
+    var ks = [];
+    qs.forEach(function (q) { if (ks.indexOf(q.entry.k) < 0) ks.push(q.entry.k); });
+    building = true; $('makeBtn').disabled = true; $('status').textContent = '書き順データを読みこみ中…';
+    Promise.all(ks.map(function (k) { return loadStrokes(k).then(function (d) { return [k, d]; }); })).then(function (list) {
+      var map = {}, bad = 0;
+      list.forEach(function (x) { map[x[0]] = x[1]; if (!x[1]) bad++; });
+      show(html + orderSheets(ks, map) + tail);
+      if (bad) alert('書き順データを読みこめなかった漢字が ' + bad + ' 字あります。インターネットにつながっているか、たしかめてください。');
+    }).then(function () { building = false; $('makeBtn').disabled = false; updateStatus(); },
+            function () { building = false; $('makeBtn').disabled = false; });
     return true;
   }
 
@@ -259,6 +320,9 @@
   window.addEventListener('afterprint', fitPreview);
   window.addEventListener('resize', fitPreview);
 
+  document.querySelectorAll('input[name="pmode"]').forEach(function (el) {
+    el.addEventListener('change', function () { $('practiceBlock').hidden = radio('pmode') === 'test'; });
+  });
   document.querySelectorAll('input[name="scope"]').forEach(function (el) {
     el.addEventListener('change', function () { $('kanjiPicker').hidden = radio('scope') !== 'custom'; updateStatus(); });
   });
