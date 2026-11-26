@@ -56,30 +56,41 @@
 .cell.empty { border:0; }
 .q-number { flex:none; width:6.5mm; height:6.5mm; border:.3mm solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:9.5pt; margin-bottom:1.5mm; }
 
-/* 書き：読み（下線）→ 答えのます＋送りがな → 練習ます */
-.write-prompt { flex:none; font-size:12.5pt; line-height:1.2; padding:0 1mm .3mm; border-bottom:.35mm solid #111; margin-bottom:1.5mm; text-align:center; }
-.write-row { flex:none; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; font-family:var(--kyo); font-size:15pt; line-height:1.1; max-width:100%; margin-bottom:2mm; }
-.write-row.long { font-size:11pt; }
-.write-row .fixed { display:inline-block; }
-.practice { flex:none; display:flex; flex-direction:column; align-items:center; gap:1mm; padding-top:2mm; border-top:.25mm dashed #999; width:100%; }
-.practice-label { font-size:7.5pt; color:#666; }
-.kbox { position:relative; flex:none; width:14mm; height:14mm; border:.35mm solid #222; background:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--kyo); font-size:22pt; }
+/* 縦書き：問題は右から左へ並ぶ（国語ドリルと同じ） */
+.q-row { direction:rtl; }
+.cell { direction:ltr; border:0; border-radius:0; }
+.q-row-wrap + .q-row-wrap { border-top:.3mm solid #222; padding-top:2mm; }
+.vt-body { flex:1; min-height:0; width:100%; display:flex; justify-content:center; }
+
+/* 書き（2枚目のモデル）：文字は縦書き。読みはますの左、送りがなはますの外 */
+.w-main { flex:none; display:flex; flex-direction:column; align-items:center; padding-left:5mm; font-family:var(--kyo); font-size:15pt; line-height:1.15; }
+.w-main.long { font-size:11.5pt; }
+/* 縦書き：1文字ずつ積む */
+.ch { display:block; width:1em; text-align:center; line-height:1.12; }
+.w-main .fixed { display:flex; flex-direction:column; align-items:center; }
+.w-main .kbox { margin:1mm 0; }
+.kbox { position:relative; flex:none; width:14mm; height:14mm; border:.35mm solid #222; background:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--kyo); font-size:22pt; writing-mode:horizontal-tb; }
 .kbox:before,.kbox:after { content:""; position:absolute; }
 .kbox:before { left:0; right:0; top:50%; border-top:.2mm dashed #999; }
 .kbox:after { top:0; bottom:0; left:50%; border-left:.2mm dashed #999; }
 .kbox .ans { position:relative; z-index:1; }
+.kbox .ruby { position:absolute; right:100%; top:0; margin-right:1mm; display:flex; flex-direction:column; align-items:center; font-family:"Yu Gothic","Noto Sans JP",sans-serif; font-size:10pt; line-height:1; white-space:nowrap; }
+.kbox .ruby .ch { line-height:1.05; }
+.practice { flex:none; display:flex; flex-direction:column; align-items:center; gap:1mm; margin-top:1.5mm; padding-top:1.5mm; border-top:.25mm dashed #999; width:100%; }
+.practice-label { font-size:7pt; color:#666; }
 
-/* 読み：漢字（下線）→ 読みを書くらん */
-.read-word { flex:none; text-align:center; font-family:var(--kyo); line-height:1.3; margin:1mm 0 3mm; word-break:keep-all; }
-.read-word u { text-decoration:none; border-bottom:.5mm solid #111; padding-bottom:.3mm; }
+/* 読み（1枚目のモデル）：右に言葉（対象の漢字の右に線）、左に（　）の答えらん */
+.vt-body.read { flex-direction:row-reverse; align-items:flex-start; gap:3mm; padding-top:1mm; }
+.read-word { display:flex; flex-direction:column; align-items:center; flex:none; font-family:var(--kyo); line-height:1.35; }
+.read-word /* 縦書き：1文字ずつ積む */
+.ch { display:block; width:1em; text-align:center; line-height:1.12; }
+.read-word .tg { width:auto; min-width:1em; border-right:.5mm solid #111; padding-right:.6mm; }
 .read-word.sz-l { font-size:24pt; }
-.read-word.sz-m { font-size:19pt; }
-.read-word.sz-s { font-size:15pt; }
-.read-word.sz-xs { font-size:12pt; }
-.read-box { position:relative; flex:none; width:100%; height:21mm; border:.35mm solid #222; display:flex; align-items:center; justify-content:center; text-align:center; }
-.read-box:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:.2mm dashed #999; }
-.read-box .ans { position:relative; z-index:1; font-size:11pt; line-height:1.15; }
-.read-hint { margin-top:1mm; font-size:7.5pt; color:#666; }
+.read-word.sz-m { font-size:20pt; }
+.read-word.sz-s { font-size:17pt; }
+.read-word.sz-xs { font-size:14pt; }
+.read-ans-box { flex:none; width:11mm; height:52mm; border:.35mm solid #222; border-radius:5.5mm; display:flex; align-items:center; justify-content:center; }
+.read-ans-box .ans { display:flex; flex-direction:column; align-items:center; font-size:12pt; }
 
 .ans { color:#c0392b; font-weight:600; }
 

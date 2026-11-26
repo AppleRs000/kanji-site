@@ -125,14 +125,16 @@
   }
 
   /* ---------- 1問ぶんの HTML ---------- */
+  /* 縦書きは1文字ずつ積む（フォントや印刷環境に左右されない） */
+  function vt(s) { return Array.from(s).map(function (c) { return '<span class="ch">' + esc(c) + '</span>'; }).join(''); }
   function writeCell(q, no, answers, practice) {
     var s = splitWord(q, selectedGrade);
     var inline = answers === 'inline';
     var long = (s.pre.length + s.post.length) >= 3;
     var row = '';
-    if (s.pre) row += '<span class="fixed">' + esc(s.pre) + '</span>';
-    row += '<span class="kbox">' + (inline ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') + '</span>';
-    if (s.post) row += '<span class="fixed">' + esc(s.post) + '</span>';
+    if (s.pre) row += '<span class="fixed">' + vt(s.pre) + '</span>';
+    row += '<span class="kbox"><span class="ruby">' + vt(q.word.p) + '</span>' + (inline ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') + '</span>';
+    if (s.post) row += '<span class="fixed">' + vt(s.post) + '</span>';
     var pr = '';
     if (practice > 0) {
       pr = '<div class="practice"><span class="practice-label">れんしゅう</span>';
@@ -140,17 +142,16 @@
       pr += '</div>';
     }
     return '<div class="cell write-cell"><div class="q-number">' + no + '</div>' +
-      '<div class="write-prompt">' + esc(q.word.p) + '</div>' +
-      '<div class="write-row' + (long ? ' long' : '') + '">' + row + '</div>' + pr + '</div>';
+      '<div class="w-main' + (long ? ' long' : '') + '">' + row + '</div>' + pr + '</div>';
   }
   function readCell(q, no, answers) {
     var s = splitWord(q, selectedGrade);
-    var shown = s.found ? esc(s.pre) + '<u>' + esc(q.entry.k) + '</u>' + esc(s.post) : esc(q.word.w);
+    var shown = s.found ? vt(s.pre) + '<span class="ch tg">' + esc(q.entry.k) + '</span>' + vt(s.post) : vt(q.word.w);
     var len = (s.pre + q.entry.k + s.post).length;
     var sz = len <= 2 ? 'sz-l' : len === 3 ? 'sz-m' : len === 4 ? 'sz-s' : 'sz-xs';
     return '<div class="cell read-cell"><div class="q-number">' + no + '</div>' +
-      '<div class="read-word ' + sz + '">' + shown + '</div>' +
-      '<div class="read-box">' + (answers === 'inline' ? '<span class="ans">' + esc(q.word.r) + '</span>' : '') + '</div></div>';
+      '<div class="vt-body read"><div class="read-word ' + sz + '">' + shown + '</div>' +
+      '<div class="read-ans-box">' + (answers === 'inline' ? '<span class="ans">' + vt(q.word.r) + '</span>' : '') + '</div></div></div>';
   }
 
   /* ---------- 1枚ぶんの HTML ---------- */
@@ -182,11 +183,11 @@
       row(r, isMix ? '【読み】下線の漢字の読みを、ひらがなで書きましょう。' : '', function (q, n) { return readCell(q, n, answers); });
     });
     rowsOf(writes).forEach(function (r, i) {
-      row(r, isMix ? '【書き】線の部分を漢字で書きましょう（送りがなは書きません）。' : '', function (q, n) { return writeCell(q, n, answers, practice); });
+      row(r, isMix ? '【書き】ますに漢字を書きましょう。（送りがなは書いてあります）' : '', function (q, n) { return writeCell(q, n, answers, practice); });
     });
     var instruction = '';
     if (type === 'read') instruction = '下線の漢字の読みを、ひらがなで書きましょう。';
-    if (type === 'write') instruction = '線の部分を漢字で書きましょう。送りがな・ほかの字はすでに書いてあります。';
+    if (type === 'write') instruction = 'ますに漢字を書きましょう。（ますの左は読み方です。送りがなは書いてあります。）';
     var body = (instruction ? '<p class="sheet-instruction">' + instruction + '</p>' : '') + '<div class="q-rows">' + rowsHtml + '</div>';
     var typeName = type === 'write' ? '書き' : type === 'read' ? '読み' : '読み・書き';
     var title = type === 'write' ? '漢字のれんしゅう（書き）' : type === 'read' ? '漢字のれんしゅう（読み）' : '漢字のれんしゅう（読み・書き）';
