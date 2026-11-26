@@ -232,3 +232,6 @@ button {
 }
 .miss-item .kanji { font-family: var(--kyo); font-size: 36px; line-height: 1; }
 .miss-item .miss-text { font-size: 17px; }
+
+/* トップ画面のプリント作成リンク */
+.print-link { width:max-content; max-width:100%; min-width:250px; margin:14px auto 22px; padding:12px 28px; text-align:center; text-decoration:none; }

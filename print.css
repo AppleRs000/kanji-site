@@ -23,36 +23,38 @@
 .note { text-align:center; color:#765; }
 #paperOutput { color:#111; }
 
-/* 印刷用紙 */
-.print-sheet { width:210mm; min-height:297mm; margin:12px auto; padding:12mm 13mm; background:#fff; box-shadow:0 2px 12px #0002; page-break-after:always; break-after:page; font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111; }
+/* 印刷用紙：A4横・国語の縦書き */
+.print-sheet { width:297mm; min-height:210mm; margin:12px auto; padding:9mm 13mm; background:#fff; box-shadow:0 2px 12px #0002; page-break-after:always; break-after:page; font-family:"Yu Gothic","Noto Sans JP",sans-serif; color:#111; }
 .print-sheet:last-child { page-break-after:auto; break-after:auto; }
-.sheet-title { text-align:center; font-size:21pt; font-weight:700; margin:0 0 5mm; letter-spacing:.08em; }
-.sheet-meta { display:flex; justify-content:space-between; font-size:11pt; margin-bottom:5mm; }
-.name-line { border-bottom:1px solid #222; display:inline-block; min-width:65mm; height:7mm; vertical-align:bottom; }
-.instruction { font-size:12pt; margin:0 0 5mm; }
-.write-grid { display:grid; grid-template-columns:1fr; gap:4mm; }
-.write-item { display:grid; grid-template-columns:11mm 1fr; gap:3mm; align-items:center; break-inside:avoid; }
-.q-number { width:8mm; height:8mm; border:1px solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:11pt; }
-.write-content { min-width:0; }
-.write-prompt { font-size:14pt; margin:0 0 1mm 1mm; }
-.practice-box { height:22mm; border:1px solid #222; position:relative; }
-.practice-box:after { content:""; position:absolute; left:0; right:0; top:50%; border-top:1px dashed #777; }
-.read-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:9mm; row-gap:7mm; }
-.read-item { font-family:var(--kyo); font-size:15pt; line-height:1.8; border-bottom:1px solid #aaa; padding:1mm 0 3mm; break-inside:avoid; }
-.read-number { font-family:Arial,sans-serif; font-size:11pt; margin-right:2mm; }
+.sheet-title { text-align:center; font-size:19pt; font-weight:700; margin:0 0 3mm; letter-spacing:.08em; }
+.sheet-meta { display:flex; justify-content:space-between; font-size:10pt; margin-bottom:2mm; }
+.name-line { border-bottom:1px solid #222; display:inline-block; min-width:55mm; height:6mm; vertical-align:bottom; }
+.worksheet-body { height:158mm; margin-top:3mm; writing-mode:vertical-rl; text-orientation:mixed; }
+.instruction { font-size:11pt; margin:0 0 0 5mm; }
+.write-grid { height:100%; display:grid; grid-auto-flow:column; grid-auto-columns:29mm; grid-template-rows:1fr; gap:4mm; align-items:start; }
+.write-item { width:29mm; display:block; break-inside:avoid; }
+.q-number { width:7mm; height:7mm; border:1px solid #111; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:10pt; margin:0 auto 2mm; }
+.write-content { min-width:0; text-align:center; }
+.write-prompt { font-size:12pt; margin:0 auto 2mm; }
+.practice-box { width:17mm; height:65mm; max-height:75mm; margin:0 auto; border:1px solid #222; position:relative; }
+.practice-box:after { content:""; position:absolute; top:0; bottom:0; left:50%; border-left:1px dashed #777; }
+.read-grid { height:100%; display:grid; grid-auto-flow:column; grid-auto-columns:29mm; grid-template-rows:1fr; column-gap:4mm; align-items:start; }
+.read-item { width:29mm; height:110mm; font-family:var(--kyo); font-size:13pt; line-height:1.7; border-left:1px solid #aaa; padding:1mm 2mm; break-inside:avoid; }
+.read-number { font-family:Arial,sans-serif; font-size:10pt; margin-bottom:2mm; }
 .read-word { font-weight:600; }
-.read-blank { display:inline-block; min-width:23mm; border-bottom:1px solid #111; height:1.2em; vertical-align:baseline; }
-.inline-answer { display:block; font-family:sans-serif; font-size:9pt; color:#555; margin-top:1mm; }
-.answer-sheet .answer-list { display:grid; grid-template-columns:1fr 1fr; gap:5mm 10mm; font-size:13pt; }
+.read-blank { display:inline-block; min-width:1.2em; height:22mm; border-left:1px solid #111; vertical-align:middle; }
+.write-grid .read-item { height:110mm; }
+.inline-answer { display:block; font-family:sans-serif; font-size:8pt; color:#555; margin-top:1mm; }
+.answer-sheet .answer-list { display:grid; grid-template-columns:1fr 1fr; gap:4mm 8mm; font-size:12pt; }
 .answer-row { border-bottom:1px dotted #999; padding:2mm 0; }
 .answer-row strong { margin-right:3mm; }
-@page { size:A4 portrait; margin:0; }
+@page { size:A4 landscape; margin:0; }
 @media print {
   body { background:#fff !important; }
   #printApp { max-width:none; padding:0; margin:0; }
   .print-header,.print-settings,.no-print { display:none !important; }
   #preview { display:block !important; }
-  .print-sheet { width:210mm; min-height:297mm; margin:0; padding:12mm 13mm; box-shadow:none; }
+  .print-sheet { width:297mm; min-height:210mm; margin:0; padding:9mm 13mm; box-shadow:none; }
 }
 @media screen and (max-width:600px) {
   #printApp { padding:10px; }

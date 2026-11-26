@@ -80,13 +80,13 @@
     var pages=[];
     for(var offset=0;offset<qs.length;offset+=chunkSize){
       var chunk=qs.slice(offset,offset+chunkSize);
-      var content='<p class="instruction">'+instruction+'</p>';
+      var content='<div class="worksheet-body"><p class="instruction">'+instruction+'</p>';
       if(isWrite) content+='<div class="write-grid">'+chunk.map(function(q,j){return writeItem(q,offset+j,answers);}).join('')+'</div>';
       else if(isRead) content+='<div class="read-grid">'+chunk.map(function(q,j){return readItem(q,offset+j,answers);}).join('')+'</div>';
       else {
         content+='<div class="write-grid">'+chunk.map(function(q,j){return q.type==='write'?writeItem(q,offset+j,answers):readItem(q,offset+j,answers);}).join('')+'</div>';
       }
-      pages.push(page(title,selectedGrade+'年生・'+(isWrite?'書き':isRead?'読み':'読み書き')+'　全'+qs.length+'問',content,''));
+      content+='</div>';\n      pages.push(page(title,selectedGrade+'年生・'+(isWrite?'書き':isRead?'読み':'読み書き')+'　全'+qs.length+'問',content,''));
     }
     var html=pages.join('');
     if(answers==='separate'){
