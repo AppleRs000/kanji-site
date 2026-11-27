@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f7d6d">
+<title>ライセンス・出どころ</title>
+<link rel="stylesheet" href="style.css">
+<style>
+ #licApp { max-width:760px; margin:0 auto; padding:16px; line-height:1.8; }
+ #licApp h2 { margin:26px 0 6px; font-size:18px; }
+ #licApp li { margin:6px 0; }
+ #licApp .box { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 16px; }
+ #licApp small { color:#8a7b5c; }
+</style>
+</head>
+<body>
+<main id="licApp">
+  <a href="index.html" class="back-link">← れんしゅうにもどる</a>
+  <h1>ライセンス・出どころ</h1>
+  <p>このサイトの「書き順」の機能は、次の素材を使っています。書き順の機能をオンにしたときだけ、外部からデータを読みこみます。</p>
+
+  <h2>1. 書き順データ</h2>
+  <div class="box">
+    <p><a href="https://github.com/k1LoW/hanzi-writer-data-jp" target="_blank" rel="noopener">hanzi-writer-data-jp</a>（k1LoW 版）、元は <a href="https://github.com/chanind/hanzi-writer-data-jp" target="_blank" rel="noopener">chanind/hanzi-writer-data-jp</a></p>
+    <ul>
+      <li><b>animCJK</b>（<a href="https://github.com/parsimonhi/animCJK" target="_blank" rel="noopener">parsimonhi/animCJK</a>）のデータ：<b>GNU LGPL（バージョン3以降）</b><br>
+        → ライセンス文：<a href="licenses/LGPL-3.0.txt" target="_blank">LGPL-3.0.txt</a>（このサイトに同梱）</li>
+      <li><b>Make Me A Hanzi</b>（<a href="https://github.com/skishore/makemeahanzi" target="_blank" rel="noopener">skishore/makemeahanzi</a>）のデータ（Arphic Technology Co., Ltd. のフォントから作成）：<b>Arphic Public License</b><br>
+        → ライセンス文：<a href="https://ctan.math.washington.edu/tex-archive/fonts/arphic-ttf/ARPHICPL.txt" target="_blank" rel="noopener">ARPHICPL.txt（公式の文面）</a>
+        <br><small>Arphic Public License は「文面を変えずに添付すること」が条件のため、このサイトには同梱せず、公式の文面へのリンクとしています。</small></li>
+    </ul>
+    <p><small>© Arphic Technology Co., Ltd.（Arphic Public License の対象部分）／ animCJK の作者（LGPL の対象部分）。このサイトは、これらのデータを改変していません。</small></p>
+  </div>
+
+  <h2>2. 書き順の表示</h2>
+  <div class="box">
+    <p><a href="https://hanziwriter.org/" target="_blank" rel="noopener">Hanzi Writer</a> — © 2018 Hanzi Writer、MIT License<br>
+    → ライセンス文：<a href="licenses/HanziWriter-MIT.txt" target="_blank">HanziWriter-MIT.txt</a>（このサイトに同梱） ／ <a href="https://hanziwriter.org/license.html" target="_blank" rel="noopener">公式の説明</a></p>
+  </div>
+
+  <h2>3. このサイトの内容</h2>
+  <div class="box">
+    <p>漢字の学年配当は、学習指導要領の学年別漢字配当表によります。例語・例文・読みは、このサイトの作成時に作ったものです。字体は、利用する端末にある書体を表示しているだけで、サイトには含めていません。</p>
+  </div>
+</main>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>

@@ -21,6 +21,8 @@
 | `style.css` | 見た目 |
 | `app.js` | 出題・採点のしくみ |
 | `print.html` / `print.css` / `print.js` | 漢字プリント作成 |
+| `licenses.html` / `licenses/` | ライセンス・出どころの表示と、ライセンス文（LGPL-3.0・MIT） |
+| `features.js` | 書き順の機能のオン・オフ（はじめはオフ） |
 | `trace.html` / `trace.css` / `trace.js` | 書き順・なぞり書き |
 | `weak.html` / `weak.css` / `weak.js` | 苦手漢字ページ（一覧・印刷・書き出し／読み込み） |
 | `sentences-grade1.js`〜`6.js` | 印刷「短文」形式の例文（全1,026字ぶん） |
@@ -93,3 +95,21 @@
 
 ## 学年まとめテスト（印刷）
 `print.html` の「学年まとめテストにする」ボタンで、選んだ学年の全字を1回ずつ出題するテスト（読み・書きまぜ、解答つき）の設定になります。問題数の「ぜんぶ」を選んでも同じことができます。
+
+## 使っている素材とライセンス
+| もの | 出どころ | ライセンス |
+|---|---|---|
+| 書き順データ | [hanzi-writer-data-jp](https://github.com/k1LoW/hanzi-writer-data-jp)（chanind版のフォーク）。元は animCJK と Make Me A Hanzi（Arphic Technology のフォント由来） | Arphic Public License / LGPL 3以降 |
+| 書き順の表示 | [Hanzi Writer](https://hanziwriter.org/) | MIT |
+| 漢字の配当 | 学習指導要領の学年別漢字配当表 | 事実情報 |
+| 例語・例文・読み | このサイトの作成時に作成（例文はAIの下書き。公開前に確認すること） | — |
+| 字体 | 端末にある「UD デジタル 教科書体」などを表示するだけ（同梱していない） | — |
+
+書き順データはサイトに同梱せず、利用者のブラウザが外部（jsDelivr / unpkg）から読み込みます。公開・配布する場合は、上のライセンス表示を残してください。
+
+## 書き順の機能のオン・オフ
+書き順の表示・なぞり書き・書き順プリントは、外部の書き順データを使うため、**はじめはオフ**です。クイズ画面の一番下の「書き順の機能を使う」にチェックするとオンになります（端末ごとの設定）。オフのあいだは、関係するボタン・ページ・印刷の項目をかくし、外部への通信もしません。公開版で最初からオンにしたいときは、`features.js` の `DEFAULT_ON` を `true` にしてください（利用者が一度切り替えたあとは、その設定が優先されます）。
+
+## ライセンス文について
+`licenses.html` に出どころと著作権表示、`licenses/` に LGPL-3.0 と Hanzi Writer（MIT）の文面を入れています。Arphic Public License は「文面を変えずに添付」する条件のため、公式の文面（CTAN の ARPHICPL.txt）へのリンクにしています。公開時に同梱したい場合は、公式の ARPHICPL.txt をそのまま `licenses/` に入れ、`licenses.html` のリンクを差し替えてください。
+「書き順データをぜんぶ保存する」ボタンは、公開版では隠しています（`features.js` の `SHOW_SAVE_ALL` を `true` にすると出ます）。

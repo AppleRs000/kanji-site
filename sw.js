@@ -1,10 +1,10 @@
 /* かんじ れんしゅう：オフライン用の Service Worker
    ・このサイトのファイル：ネットがあれば最新を取り、取れなければ保存したものを使う
    ・外部（Hanzi Writer・書き順データ）：一度取ったら保存して、次からはそれを使う */
-var APP_CACHE = 'kanji-app-v2';
+var APP_CACHE = 'kanji-app-v4';
 var DATA_CACHE = 'kanji-data-v1';   /* 書き順データ（trace.js が一括保存にも使う） */
 var APP_FILES = ['./', 'index.html', 'style.css', 'app.js', 'print.html', 'print.css', 'print.js',
-  'trace.html', 'trace.css', 'trace.js', 'weak.html', 'weak.css', 'weak.js',
+  'trace.html', 'trace.css', 'trace.js', 'features.js', 'licenses.html', 'licenses/LGPL-3.0.txt', 'licenses/HanziWriter-MIT.txt', 'weak.html', 'weak.css', 'weak.js',
   'sentences-grade1.js', 'sentences-grade2.js', 'sentences-grade3.js', 'sentences-grade4.js', 'sentences-grade5.js', 'sentences-grade6.js',
   'data-grade1.js', 'data-grade2.js', 'data-grade3.js', 'data-grade4.js', 'data-grade5.js', 'data-grade6.js'];
 var LIB = 'https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js';

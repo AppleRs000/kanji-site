@@ -418,7 +418,7 @@
     $('nextBtn').textContent = quiz.index + 1 < quiz.questions.length ? 'つぎへ' : 'けっかを みる';
     fb.hidden = false;
     resetStroke();
-    if (state.autoStroke && strokeReady()) showStroke(e.k);
+    if (state.autoStroke && featOn && strokeReady()) showStroke(e.k);
     try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (err) { /* 無視 */ }
   }
 
@@ -487,7 +487,7 @@
         d.className = 'miss-item';
         d.innerHTML = '<span class="kanji">' + esc(q.entry.k) + '</span>' +
           '<span class="miss-text">' + esc(shownWord(q)) + '（' + esc(q.word.r) + '）</span>' +
-          '<a class="miss-trace" href="trace.html?k=' + encodeURIComponent(q.entry.k) + '">かきじゅん</a>';
+          '<a class="miss-trace stroke-feature" href="trace.html?k=' + encodeURIComponent(q.entry.k) + '">かきじゅん</a>';
         list.appendChild(d);
       });
     }
@@ -509,6 +509,11 @@
     renderAll();
   });
   $('startBtn').addEventListener('click', start);
+  var featOn = !!(window.KFeat && window.KFeat.stroke);
+  if ($('featStroke')) {
+    $('featStroke').checked = featOn;
+    $('featStroke').addEventListener('change', function () { if (window.KFeat) KFeat.setStroke(this.checked); location.reload(); });
+  }
   $('autoStroke').checked = state.autoStroke;
   $('autoStroke').addEventListener('change', function () { state.autoStroke = this.checked; persist(); });
   $('strokeBtn').addEventListener('click', function () { if (quiz) showStroke(quiz.questions[quiz.index].entry.k); });

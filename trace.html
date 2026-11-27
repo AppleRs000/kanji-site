@@ -15,6 +15,11 @@
     <h1>かきじゅん・なぞりがき</h1>
   </header>
 
+  <section class="stroke-off-msg">
+    <p>書き順の機能は、いまオフです。外部の書き順データを読みこむ機能なので、使うときだけオンにします。</p>
+    <button type="button" id="strokeOnBtn" class="primary">書き順の機能をオンにする</button>
+  </section>
+
   <section class="trace-pick">
     <label for="gradeSelect" class="pick-label">がくねん</label>
     <select id="gradeSelect" class="grade-select" aria-label="学年を選択"></select>
@@ -51,14 +56,14 @@
     <div id="strip" class="stroke-strip"></div>
   </section>
 
-  <section class="offline-box">
+  <section class="offline-box saveall-feature">
     <h2>オフラインで使うには</h2>
     <p>ネットにつながっているうちに、書き順データをこの端末に保存しておくと、教室のネットが不安定でも使えます。（全1,026字・数MB〜10MBほど）</p>
     <button type="button" id="saveAllBtn" class="secondary">書き順データをぜんぶ保存する</button>
     <p id="saveMsg" class="save-msg" aria-live="polite"></p>
   </section>
 
-  <p class="credit">書き順データ：<a href="https://github.com/k1LoW/hanzi-writer-data-jp" target="_blank" rel="noopener">@k1low/hanzi-writer-data-jp</a>（chanind版のフォーク）（Arphic Public License / LGPL）、表示：<a href="https://hanziwriter.org/" target="_blank" rel="noopener">Hanzi Writer</a>（MIT）。インターネットにつながっているときに使えます。</p>
+  <p class="credit">書き順データ：<a href="https://github.com/k1LoW/hanzi-writer-data-jp" target="_blank" rel="noopener">@k1low/hanzi-writer-data-jp</a>（chanind版のフォーク）（Arphic Public License / LGPL）、表示：<a href="https://hanziwriter.org/" target="_blank" rel="noopener">Hanzi Writer</a>（MIT）。インターネットにつながっているときに使えます。 <a href="licenses.html">ライセンス・出どころ</a></p>
 </main>
 <script src="data-grade1.js"></script>
 <script src="data-grade2.js"></script>
@@ -66,8 +71,9 @@
 <script src="data-grade4.js"></script>
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
+<script src="features.js"></script>
 <script src="trace.js"></script>
+<script>document.getElementById("strokeOnBtn").addEventListener("click",function(){KFeat.setStroke(true);location.reload();});</script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });

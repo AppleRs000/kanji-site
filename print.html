@@ -43,7 +43,7 @@
     <div class="choice-grid cols-1" id="modeSelect">
       <label class="scope-option"><input type="radio" name="pmode" value="practice" checked> れんしゅうプリント（練習ますつき）</label>
       <label class="scope-option"><input type="radio" name="pmode" value="test"> テスト（練習ますなし・うすい字なし）</label>
-      <label class="scope-option"><input type="radio" name="pmode" value="order"> 書き順プリント（書き順の図と、なぞる練習ます）</label>
+      <label class="scope-option stroke-feature"><input type="radio" name="pmode" value="order"> 書き順プリント（書き順の図と、なぞる練習ます）</label>
     </div>
     <p class="hint">テストは「覚えているかな？」の確認用です。答えを書くますだけが並びます。</p>
 
@@ -85,7 +85,7 @@
     <p class="hint">答えを書くますの下に、同じ漢字をくり返し書く練習ますがつきます。10問までのときは、ますが大きくなります。</p>
     </div>
 
-    <div id="orderBlock">
+    <div id="orderBlock" class="stroke-feature">
     <h2>7. 書き順の一覧</h2>
     <label class="check-option"><input type="checkbox" id="orderSheet"> 出題した漢字の書き順（1画ずつ増える図）を別のページにつける</label>
     <p class="hint">書き順データをネットから読みこむので、インターネットにつながっているときに使えます。</p>
@@ -118,6 +118,7 @@
     <p class="note no-print">印刷の設定は「A4・横向き・余白なし（なし／最小）・倍率100%」にしてください。</p>
     <div id="paperOutput"></div>
   </section>
+  <p class="credit no-print stroke-feature">書き順データ：<a href="https://github.com/k1LoW/hanzi-writer-data-jp" target="_blank" rel="noopener">hanzi-writer-data-jp</a>（Arphic Public License / LGPL）、表示：<a href="https://hanziwriter.org/" target="_blank" rel="noopener">Hanzi Writer</a>（MIT）。例語・例文はこのサイトの作成者が作ったものです。 <a href="licenses.html">ライセンス・出どころ</a></p>
 </main>
 <script src="data-grade1.js"></script>
 <script src="data-grade2.js"></script>
@@ -131,6 +132,7 @@
 <script src="sentences-grade4.js"></script>
 <script src="sentences-grade5.js"></script>
 <script src="sentences-grade6.js"></script>
+<script src="features.js"></script>
 <script src="print.js"></script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {

@@ -1,5 +1,6 @@
 (function () {
   'use strict';
+  if (!(window.KFeat && window.KFeat.stroke)) return;   /* 書き順の機能がオフのときは何もしない */
   var $ = function (id) { return document.getElementById(id); };
   var ALL = (window.KANJI_DATA || []).map(function (e) {
     return { k: e[0], grade: e[1], on: e[2], kun: e[3], words: (e[4] || []).map(function (w) { return { w: w[0], r: w[1], p: w[2] }; }) };

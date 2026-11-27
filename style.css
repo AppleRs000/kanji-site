@@ -246,3 +246,16 @@ button {
 .stroke-writer { width: 150px; height: 150px; border: 2px solid #8b7b5b; background: #fffdf7; background-image: linear-gradient(to right, transparent calc(50% - .75px), #d6c8a8 calc(50% - .75px), #d6c8a8 calc(50% + .75px), transparent calc(50% + .75px)), linear-gradient(to bottom, transparent calc(50% - .75px), #d6c8a8 calc(50% - .75px), #d6c8a8 calc(50% + .75px), transparent calc(50% + .75px)); cursor: pointer; }
 .stroke-writer svg { display: block; width: 100%; height: 100%; }
 .stroke-msg { font-size: 13px; color: #8a7b5c; }
+
+.credit { margin:22px 0 8px; font-size:11px; line-height:1.6; color:#8a7b5c; text-align:center; }
+.credit a { color:inherit; }
+
+/* 書き順の機能のオン・オフ */
+.stroke-off .stroke-feature { display:none !important; }
+.stroke-on .stroke-off-msg { display:none; }
+.stroke-off #traceApp > :not(.trace-header):not(.stroke-off-msg) { display:none !important; }
+.stroke-off .weak-chip a { pointer-events:none; }
+.stroke-off-msg { text-align:center; padding:20px 12px; }
+.feature-option { margin-top:18px; font-size:14px; color:#6b5b3e; }
+
+.no-saveall .saveall-feature { display:none !important; }

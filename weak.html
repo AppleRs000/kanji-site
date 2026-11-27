@@ -33,7 +33,7 @@
       <label><input type="radio" name="sort" value="count"> まちがいが多い順</label>
     </div>
     <div id="weakList"></div>
-    <p class="weak-note">漢字をタップすると、書き順・なぞり書きのページが開きます。クイズで正解すると回数が減り、0回になると自動で消えます。覚えたものは ✕ で消すこともできます。</p>
+    <p class="weak-note"><span class="stroke-feature">漢字をタップすると、書き順・なぞり書きのページが開きます。</span>クイズで正解すると回数が減り、0回になると自動で消えます。覚えたものは ✕ で消すこともできます。</p>
     <button type="button" id="clearBtn" class="ghost">ぜんぶ消す</button>
   </section>
 
@@ -61,6 +61,7 @@
 <script src="data-grade4.js"></script>
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
+<script src="features.js"></script>
 <script src="weak.js"></script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
