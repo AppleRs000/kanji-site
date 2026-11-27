@@ -51,6 +51,10 @@
       <label class="type-option"><input type="radio" name="ptype" value="read"> 読み</label>
       <label class="type-option"><input type="radio" name="ptype" value="mix"> 両方</label>
     </div>
+    <div class="count-row" id="qformRow">
+      <label><input type="radio" name="qform" value="word" checked> ことば</label>
+      <label><input type="radio" name="qform" value="sentence"> 短文（文の中で出題・1枚10問）</label>
+    </div>
     <p class="hint">「両方」は、上の段が読み・下の段が書きになります。</p>
 
     </div>
@@ -117,6 +121,12 @@
 <script src="data-grade4.js"></script>
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
+<script src="sentences-grade1.js"></script>
+<script src="sentences-grade2.js"></script>
+<script src="sentences-grade3.js"></script>
+<script src="sentences-grade4.js"></script>
+<script src="sentences-grade5.js"></script>
+<script src="sentences-grade6.js"></script>
 <script src="print.js"></script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {

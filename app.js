@@ -29,13 +29,14 @@
   }
 
   /* ---------- 状態 ---------- */
-  var state = { grade: null, range: 'only', type: 'read', count: 10 };
+  var state = { grade: null, range: 'only', type: 'read', count: 10, autoStroke: false };
   (function restore() {
     var s = store.settings;
     if (s.grade && gradeCount[s.grade]) state.grade = s.grade;
     if (['only', 'review', 'weak'].indexOf(s.range) >= 0) state.range = s.range;
     if (['read', 'write', 'mix'].indexOf(s.type) >= 0) state.type = s.type;
     if ([5, 10, 20].indexOf(s.count) >= 0) state.count = s.count;
+    state.autoStroke = !!s.autoStroke;
   })();
   var quiz = null;
 
@@ -298,7 +299,7 @@
   }
 
   function persist() {
-    store.settings = { grade: state.grade, range: state.range, type: state.type, count: state.count };
+    store.settings = { grade: state.grade, range: state.range, type: state.type, count: state.count, autoStroke: state.autoStroke };
     saveStore();
   }
 
@@ -410,10 +411,48 @@
       '<br>' + esc(shownWord(q)) + '（' + esc(w.r) + '）</div>';
     $('nextBtn').textContent = quiz.index + 1 < quiz.questions.length ? 'つぎへ' : 'けっかを みる';
     fb.hidden = false;
+    resetStroke();
+    if (state.autoStroke && strokeReady()) showStroke(e.k);
     try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (err) { /* 無視 */ }
   }
 
+  /* ---------- 書き順（答えたあとに見る） ---------- */
+  var STROKE_SOURCES = ['https://cdn.jsdelivr.net/npm/@k1low/hanzi-writer-data-jp@0/', 'https://unpkg.com/@k1low/hanzi-writer-data-jp@latest/', 'https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/', 'https://unpkg.com/hanzi-writer-data-jp@0/'];
+  var strokeWriter = null, strokeToken = 0;
+  function strokeReady() { return typeof HanziWriter !== 'undefined'; }
+  function strokeLoader(ch, onLoad, onError) {
+    var i = 0;
+    (function nextSrc() {
+      if (i >= STROKE_SOURCES.length) return onError(new Error('load failed'));
+      var url = STROKE_SOURCES[i++] + encodeURIComponent(ch) + '.json';
+      fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(onLoad, nextSrc);
+    })();
+  }
+  function resetStroke() {
+    strokeToken++;
+    strokeWriter = null;
+    $('strokeWriter').innerHTML = '';
+    $('strokeBox').hidden = true;
+    $('strokeBtn').hidden = !strokeReady();
+  }
+  function showStroke(k) {
+    if (!strokeReady()) return;
+    var my = ++strokeToken;
+    $('strokeWriter').innerHTML = '';
+    $('strokeBox').hidden = false;
+    $('strokeMsg').textContent = 'よみこみ中…';
+    try {
+      strokeWriter = HanziWriter.create('strokeWriter', k, {
+        width: 150, height: 150, padding: 8, showOutline: true, strokeColor: '#222', outlineColor: '#ddd',
+        strokeAnimationSpeed: 1.2, delayBetweenStrokes: 250, charDataLoader: strokeLoader,
+        onLoadCharDataSuccess: function () { if (my === strokeToken) { $('strokeMsg').textContent = 'タップで もういちど'; strokeWriter.animateCharacter(); } },
+        onLoadCharDataError: function () { if (my === strokeToken) $('strokeMsg').textContent = '書き順を読みこめませんでした（ネットを確かめてね）'; }
+      });
+    } catch (err) { $('strokeMsg').textContent = '書き順を出せませんでした'; }
+  }
+
   function next() {
+    resetStroke();
     quiz.index++;
     if (quiz.index >= quiz.questions.length) showResult();
     else renderQuestion();
@@ -464,6 +503,10 @@
     renderAll();
   });
   $('startBtn').addEventListener('click', start);
+  $('autoStroke').checked = state.autoStroke;
+  $('autoStroke').addEventListener('change', function () { state.autoStroke = this.checked; persist(); });
+  $('strokeBtn').addEventListener('click', function () { if (quiz) showStroke(quiz.questions[quiz.index].entry.k); });
+  $('strokeWriter').addEventListener('click', function () { if (strokeWriter) { try { strokeWriter.animateCharacter(); } catch (e) {} } });
   $('nextBtn').addEventListener('click', next);
   $('quitBtn').addEventListener('click', function () {
     if (window.confirm('れんしゅうを やめますか？')) { show('setup'); renderAll(); }

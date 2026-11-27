@@ -1,0 +1,31 @@
+/* ===== にがて漢字 ===== */
+#weakApp { max-width: 640px; margin: 0 auto; padding: 16px 16px calc(28px + env(safe-area-inset-bottom)); }
+.weak-header { text-align: center; }
+.weak-header h1 { margin: 10px 0 6px; }
+.back-link { color: var(--main-dark); font-weight: 700; text-decoration: none; }
+.weak-summary { margin: 4px 0 14px; font-size: 16px; font-weight: 700; color: var(--main-dark); }
+.weak-actions { display: grid; gap: 10px; margin-bottom: 16px; }
+.weak-actions button { margin: 0; }
+.weak-actions button:disabled { opacity: .45; }
+.weak-list-box { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.weak-sort { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 15px; }
+.weak-sort label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.weak-sort input { accent-color: var(--main); transform: scale(1.15); }
+.weak-grade { margin: 12px 0 6px; font-size: 14px; font-weight: 700; color: #6b5b3e; }
+.weak-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.weak-chip { position: relative; display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 10px; border: 2px solid var(--line); border-radius: 12px; background: #fffdf7; }
+.weak-chip a { font-family: var(--kyo); font-size: 30px; line-height: 1.1; color: var(--ink); text-decoration: none; }
+.weak-chip .cnt { font-size: 12px; color: #a34a3a; font-weight: 700; }
+.weak-chip .x { width: 28px; height: 28px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #8a7b5c; font-size: 14px; cursor: pointer; }
+.weak-chip .x:hover { background: #f0e6d0; }
+.weak-empty { margin: 8px 0; color: #6b5b3e; line-height: 1.7; }
+.weak-note { margin: 14px 0 10px; font-size: 13px; color: #8a7b5c; line-height: 1.6; }
+.weak-backup { margin-top: 18px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.weak-backup h2 { margin: 0 0 6px; font-size: 16px; }
+.weak-backup h3 { margin: 14px 0 6px; font-size: 14px; }
+.weak-backup p { margin: 0 0 6px; font-size: 14px; line-height: 1.6; }
+.weak-backup textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--line); border-radius: 10px; font: 13px/1.4 monospace; resize: vertical; background: #fffdf7; color: var(--ink); }
+.weak-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.weak-row button, .file-btn { margin: 0; flex: 1 1 140px; text-align: center; cursor: pointer; }
+.file-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; padding: 0 16px; border-radius: 12px; font-weight: 700; }
+.weak-msg { min-height: 1.5em; margin: 10px 0 0 !important; font-weight: 700; color: var(--main-dark); }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f7d6d">
+<title>にがて漢字</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="weak.css">
+</head>
+<body>
+<main id="weakApp">
+  <header class="weak-header">
+    <a href="index.html" class="back-link">← れんしゅうにもどる</a>
+    <h1>にがて かんじ</h1>
+    <p id="weakSummary" class="weak-summary"></p>
+  </header>
+
+  <section class="weak-actions">
+    <button type="button" id="quizBtn" class="primary">にがて かんじで クイズ</button>
+    <button type="button" id="printBtn" class="secondary">にがて かんじの プリントを作る</button>
+  </section>
+
+  <section class="weak-list-box">
+    <div class="weak-sort" role="radiogroup" aria-label="ならびかた">
+      <label><input type="radio" name="sort" value="grade" checked> 学年ごと</label>
+      <label><input type="radio" name="sort" value="count"> まちがいが多い順</label>
+    </div>
+    <div id="weakList"></div>
+    <p class="weak-note">漢字をタップすると、書き順・なぞり書きのページが開きます。クイズで正解すると回数が減り、0回になると自動で消えます。覚えたものは ✕ で消すこともできます。</p>
+    <button type="button" id="clearBtn" class="ghost">ぜんぶ消す</button>
+  </section>
+
+  <section class="weak-backup">
+    <h2>記録をほかの端末へ移す</h2>
+    <p>にがて漢字の記録は、この端末のブラウザにだけ入っています。教室のタブレットと自分のスマホで共有したいときは、コードで移せます。</p>
+    <h3>書き出す</h3>
+    <textarea id="exportBox" readonly rows="3" aria-label="書き出しコード"></textarea>
+    <div class="weak-row">
+      <button type="button" id="copyBtn" class="secondary">コードをコピー</button>
+      <button type="button" id="dlBtn" class="secondary">ファイルで保存</button>
+    </div>
+    <h3>読みこむ（いまの記録に足されます）</h3>
+    <textarea id="importBox" rows="3" placeholder="コードをここに貼りつけ" aria-label="読みこみコード"></textarea>
+    <div class="weak-row">
+      <button type="button" id="importBtn" class="secondary">コードを読みこむ</button>
+      <label class="file-btn secondary">ファイルを選ぶ<input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden></label>
+    </div>
+    <p id="backupMsg" class="weak-msg" aria-live="polite"></p>
+  </section>
+</main>
+<script src="data-grade1.js"></script>
+<script src="data-grade2.js"></script>
+<script src="data-grade3.js"></script>
+<script src="data-grade4.js"></script>
+<script src="data-grade5.js"></script>
+<script src="data-grade6.js"></script>
+<script src="weak.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>

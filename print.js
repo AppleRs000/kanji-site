@@ -1,6 +1,7 @@
 (function () {
   'use strict';
   var PER_SHEET = 20;   /* 1枚の最大問題数（横10列 × 縦2段） */
+  var perSheet = PER_SHEET;   /* 短文のときは10問 */
   var PER_ROW = 10;
   var ANS_PER_SHEET = 50;
 
@@ -104,8 +105,14 @@
     var p = shuffle(pool().slice());
     var count = Math.min(wantedCount(), p.length);
     var out = [];
+    var sentForm = radio('qform') === 'sentence';
     for (var i = 0; i < p.length && out.length < count; i++) {
       var e = p[i];
+      var sd = sentForm && window.KANJI_SENT && window.KANJI_SENT[e.k];
+      if (sd) {
+        var sw = e.words.filter(function (w) { return w.w === sd[0] && w.r && w.p; })[0];
+        if (sw && sd[1].indexOf(sw.w) >= 0) { out.push({ entry: e, word: sw, sent: { text: sd[1], word: sw.w }, type: 'write' }); continue; }
+      }
       var words = e.words.filter(function (w) { return w.w && w.r && w.p; });
       if (!words.length) continue;
       out.push({ entry: e, word: words[Math.floor(Math.random() * words.length)], type: 'write' });
@@ -116,8 +123,8 @@
   /* 1枚ごとに「上の段／下の段」へ振り分ける。両方のときは 上＝読み・下＝書き */
   function assignTypes(qs, type) {
     var pages = [];
-    for (var off = 0; off < qs.length; off += PER_SHEET) {
-      var chunk = qs.slice(off, off + PER_SHEET);
+    for (var off = 0; off < qs.length; off += perSheet) {
+      var chunk = qs.slice(off, off + perSheet);
       var nRead = type === 'read' ? chunk.length : type === 'write' ? 0 : Math.ceil(chunk.length / 2);
       chunk.forEach(function (q, i) { q.type = i < nRead ? 'read' : 'write'; });
       pages.push(chunk);
@@ -132,7 +139,51 @@
   /* 十字のますの線は、SVGで描く（印刷で細い点線が消えないように） */
   var CROSS = '<svg class="kx" viewBox="0 0 10 10" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="5" x2="10" y2="5"/><line x1="5" y1="0" x2="5" y2="10"/></svg>';
   function kbox(inner) { return '<span class="kbox">' + CROSS + (inner || '') + '</span>'; }
+  /* 短文：文の中の「ことば」の漢字を、下線の部分（書き＝ひらがな／読み＝漢字）にして、縦に並べる */
+  function sentChars(q, mode) {
+    var S = q.sent, i = S.text.indexOf(S.word);
+    var s = splitWord(q, selectedGrade);
+    var chars = [];
+    function add(str, tg) { Array.from(str).forEach(function (c) { chars.push({ c: c, tg: tg }); }); }
+    add(S.text.slice(0, i), false);
+    if (s.found) { add(s.pre, false); if (mode === 'write') add(q.word.p, true); else add(q.entry.k, true); add(s.post, false); }
+    else add(S.word, false);
+    add(S.text.slice(i + S.word.length), false);
+    return chars;
+  }
+  /* 1枚の中の字の大きさをそろえる（いちばん長い文に合わせる。2列まで） */
+  var sentFs = 7;
+  function setSentFs(chunk) {
+    var fs = 8.5;
+    chunk.forEach(function (q) {
+      if (!q.sent) return;
+      var n = sentChars(q, q.type).length, L = Math.ceil(n / (n <= 8 ? 1 : 2));
+      fs = Math.min(fs, 66 / (Math.max(L, 8) * 1.12));
+    });
+    sentFs = Math.floor(fs * 10) / 10;
+  }
+  function sentCols(q, mode) {
+    var chars = sentChars(q, mode);
+    var perCol = Math.max(1, Math.floor(66 / (sentFs * 1.12)));
+    var lines = Math.min(2, Math.ceil(chars.length / perCol)), L = Math.ceil(chars.length / lines);
+    var cols = '';
+    for (var l = 0; l < lines; l++) {
+      cols += '<div class="read-word sent-col">' + chars.slice(l * L, (l + 1) * L).map(function (x) {
+        var cls = 'ch' + (x.tg ? ' tg' : '') + ('。、'.indexOf(x.c) >= 0 ? ' pn' : '') + (x.c === 'ー' ? ' lv' : '');
+        return '<span class="' + cls + '">' + esc(x.c) + '</span>';
+      }).join('') + '</div>';
+    }
+    return '<div class="sent-cols" style="--sf:' + sentFs + 'mm">' + cols + '</div>';
+  }
   function writeCell(q, no, answers, practice, trace) {
+    if (q.sent) {
+      var inl = answers === 'inline', prs = '';
+      for (var pi = 0; pi < practice; pi++) prs += kbox(pi === 0 && trace ? '<span class="trace-ghost">' + esc(q.entry.k) + '</span>' : '');
+      return '<div class="cell write-cell"><div class="q-number">' + no + '</div>' +
+        '<div class="vt-body write">' + sentCols(q, 'write') +
+        '<div class="w-ans">' + kbox(inl ? '<span class="ans">' + esc(q.entry.k) + '</span>' : '') +
+        (prs ? '<div class="practice">' + prs + '</div>' : '') + '</div></div></div>';
+    }
     var s = splitWord(q, selectedGrade);
     var inline = answers === 'inline';
     var tg = Array.from(q.word.p).map(function (c) { return '<span class="ch tg">' + esc(c) + '</span>'; }).join('');
@@ -147,6 +198,11 @@
       (pr ? '<div class="practice">' + pr + '</div>' : '') + '</div></div></div>';
   }
   function readCell(q, no, answers) {
+    if (q.sent) {
+      return '<div class="cell read-cell"><div class="q-number">' + no + '</div>' +
+        '<div class="vt-body read">' + sentCols(q, 'read') +
+        '<div class="read-ans-box">' + (answers === 'inline' ? '<span class="ans">' + vt(q.word.p) + '</span>' : '') + '</div></div></div>';
+    }
     var s = splitWord(q, selectedGrade);
     var shown = s.found ? vt(s.pre) + '<span class="ch tg">' + esc(q.entry.k) + '</span>' + vt(s.post) : vt(q.word.w);
     var len = (s.pre + q.entry.k + s.post).length;
@@ -169,6 +225,7 @@
 
   function questionSheet(chunk, startNo, pageNo, pageTotal, type, answers, practice, total, trace) {
     var no = startNo;
+    setSentFs(chunk);
     var reads = chunk.filter(function (q) { return q.type === 'read'; });
     var writes = chunk.filter(function (q) { return q.type === 'write'; });
     var rowsHtml = '';
@@ -219,7 +276,7 @@
         var s = splitWord(q, selectedGrade);
         var shownWord = s.found ? s.pre + q.entry.k + s.post : q.word.w;
         var main = q.type === 'write' ? q.entry.k : q.word.p;
-        var small = q.type === 'write' ? shownWord : shownWord;
+        var small = q.sent ? q.sent.text : shownWord;
         return '<div class="answer-row"><strong>' + (off + i + 1) + '.</strong><span class="ans-main">' + esc(main) + '</span><small>' + esc(small) + '</small></div>';
       }).join('');
       html += sheetHtml({ title: '解答', sub: selectedGrade + '年生' + (n > 1 ? '　' + (off / ANS_PER_SHEET + 1) + '／' + n : ''), cls: 'answer-sheet',
@@ -320,6 +377,7 @@
   function build() {
     if (building) return false;
     if (radio('pmode') === 'order') return buildOrderOnly();
+    perSheet = radio('qform') === 'sentence' ? 10 : PER_SHEET;
     var qs = makeQuestions();
     if (!qs.length) { $('status').textContent = '出題できる漢字がありません。範囲を確認してください。'; return false; }
     var type = radio('ptype'), answers = radio('answers');
@@ -384,4 +442,15 @@
   $('selectAll').addEventListener('click', function () { ALL.filter(function (e) { return e.grade <= selectedGrade; }).forEach(function (e) { selected.add(e.k); }); renderKanji(); updateStatus(); });
   $('clearAll').addEventListener('click', function () { selected.clear(); renderKanji(); updateStatus(); });
   renderGrades(); renderKanji(); updateStatus();
+  /* にがて漢字のページから来たとき：範囲を「にがて漢字」にする */
+  try {
+    if (new URLSearchParams(location.search).get('weak')) {
+      var mg = ALL.reduce(function (m, e) { return (weak[e.k] || 0) > 0 ? Math.max(m, e.grade) : m; }, 0);
+      if (mg) {
+        selectedGrade = mg; $('gradeSelect').value = String(mg);
+        var wr = document.querySelector('input[name="scope"][value="weak"]'); if (wr) wr.checked = true;
+        renderKanji(); updateStatus();
+      }
+    }
+  } catch (e) {}
 })();

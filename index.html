@@ -15,6 +15,7 @@
     <h1>かんじ れんしゅう</h1>
     <a class="primary print-link" href="print.html">漢字プリントを作る</a>
     <a class="secondary print-link" href="trace.html">かきじゅん・なぞりがき</a>
+    <a class="secondary print-link" href="weak.html">にがて漢字を見る・うつす</a>
 
     <h2>1. がくねん</h2>
     <div id="gradeButtons" class="choice-grid cols-3"></div>
@@ -38,6 +39,8 @@
       <button type="button" class="choice" data-count="20">20もん</button>
     </div>
 
+    <label class="check-option stroke-option"><input type="checkbox" id="autoStroke"> 答えたあとに、書き順を見せる（ネットが必要）</label>
+
     <p id="setupNote" class="note"></p>
     <button type="button" id="startBtn" class="primary">スタート</button>
   </section>
@@ -55,6 +58,11 @@
     <div id="feedback" class="feedback" hidden>
       <div id="feedbackMark"></div>
       <div id="feedbackText"></div>
+      <button type="button" id="strokeBtn" class="secondary stroke-btn" hidden>✎ かきじゅんを みる</button>
+      <div id="strokeBox" class="stroke-box" hidden>
+        <div id="strokeWriter" class="stroke-writer"></div>
+        <div id="strokeMsg" class="stroke-msg"></div>
+      </div>
       <button type="button" id="nextBtn" class="primary">つぎへ</button>
     </div>
   </section>
@@ -78,6 +86,7 @@
 <script src="data-grade4.js"></script>
 <script src="data-grade5.js"></script>
 <script src="data-grade6.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="app.js"></script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
