@@ -418,7 +418,12 @@
   }
   try { if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('rotPrint').checked = true; } catch (e) {}
   $('rotPrint').addEventListener('change', setPageRule);
-  $('printBtn').addEventListener('click', function () { setPageRule(); clearZoom(); window.print(); setTimeout(fitPreview, 300); });
+  var lastPrint = 0;
+  $('printBtn').addEventListener('click', function () {
+    /* Safari は、短い間にくり返し print() を呼ぶと「自動的に印刷することは禁止」と出す。連打は無視する */
+    var now = Date.now(); if (now - lastPrint < 3000) return; lastPrint = now;
+    setPageRule(); clearZoom(); window.print(); setTimeout(fitPreview, 300);
+  });
   $('editBtn').addEventListener('click', function () { $('preview').hidden = true; $('settings').hidden = false; window.scrollTo(0, 0); });
   window.addEventListener('beforeprint', clearZoom);
   window.addEventListener('afterprint', fitPreview);
