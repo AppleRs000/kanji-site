@@ -64,6 +64,7 @@
     return ALL.filter(function (e) { return selected.has(e.k) && e.grade <= selectedGrade; });
   }
   function wantedCount() {
+    if (radio('count') === 'all') return 100000;
     var c = radio('count') === 'custom' ? parseInt($('customCount').value, 10) : parseInt(radio('count'), 10);
     if (!isFinite(c) || c < 1) c = 10;
     return Math.min(c, 100);
@@ -96,7 +97,7 @@
   function updateStatus() {
     var n = pool().length, want = wantedCount();
     var t = '出題できる漢字：' + n + '字';
-    if (n && want > n) t += '（問題数は ' + n + '問になります）';
+    if (n && want > n) t += '（問題数は ' + n + '問になります' + (n > perSheet ? '・約' + Math.ceil(n / perSheet) + '枚' : '') + '）';
     $('status').textContent = t;
   }
 
@@ -446,6 +447,13 @@
   });
   $('selectAll').addEventListener('click', function () { ALL.filter(function (e) { return e.grade <= selectedGrade; }).forEach(function (e) { selected.add(e.k); }); renderKanji(); updateStatus(); });
   $('clearAll').addEventListener('click', function () { selected.clear(); renderKanji(); updateStatus(); });
+  function setRadio(name, val) { var r = document.querySelector('input[name="' + name + '"][value="' + val + '"]'); if (r) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); } }
+  $('gradeTestBtn').addEventListener('click', function () {
+    setRadio('scope', 'grade'); setRadio('pmode', 'test'); setRadio('ptype', 'mix'); setRadio('qform', 'word');
+    setRadio('count', 'all'); setRadio('answers', 'separate'); $('orderSheet').checked = false;
+    updateStatus();
+    $('status').textContent = '学年まとめテストの設定にしました。 ' + $('status').textContent;
+  });
   renderGrades(); renderKanji(); updateStatus();
   /* にがて漢字のページから来たとき：範囲を「にがて漢字」にする */
   try {

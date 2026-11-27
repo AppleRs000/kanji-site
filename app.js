@@ -15,11 +15,12 @@
   ALL.forEach(function (e) { gradeCount[e.grade] = (gradeCount[e.grade] || 0) + 1; });
 
   /* ---------- 保存（にがて漢字・前回の設定） ---------- */
-  var store = { miss: {}, settings: {} };
+  var store = { miss: {}, streak: {}, settings: {} };
   try {
     var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (saved && typeof saved === 'object') {
       if (saved.miss && typeof saved.miss === 'object') store.miss = saved.miss;
+      if (saved.streak && typeof saved.streak === 'object') store.streak = saved.streak;
       if (saved.settings && typeof saved.settings === 'object') store.settings = saved.settings;
     }
   } catch (err) { /* 保存できない環境でも動くようにする */ }
@@ -316,7 +317,8 @@
     } else if (!pool.length) {
       $('setupNote').textContent = 'この はんいには かんじが ないよ';
     } else {
-      $('setupNote').textContent = Math.min(state.count, pool.length) + 'もん でるよ（ぜんぶで ' + pool.length + '字）';
+      var mastered = poolFor(state.grade, 'only').filter(function (e) { return (store.streak[e.k] || 0) >= 2 && !missCount(e.k); }).length;
+      $('setupNote').textContent = Math.min(state.count, pool.length) + 'もん でるよ（ぜんぶで ' + pool.length + '字）　' + state.grade + '年生マスター：' + mastered + '／' + gradeCount[state.grade] + '字';
     }
     persist();
   }
@@ -376,6 +378,10 @@
     var m = missCount(entry.k);
     if (ok) { if (m > 0) m--; } else { m = Math.min(m + 1, 5); }
     if (m > 0) store.miss[entry.k] = m; else delete store.miss[entry.k];
+    /* れんぞく正解の回数（2回でマスター）。まちがえたら0にもどる */
+    var s = store.streak[entry.k] || 0;
+    if (ok) s = Math.min(s + 1, 3); else s = 0;
+    if (s > 0) store.streak[entry.k] = s; else delete store.streak[entry.k];
     saveStore();
   }
 

@@ -20,6 +20,9 @@
     <h2>1. 学年</h2>
     <select id="gradeSelect" class="grade-select" aria-label="学年を選択"></select>
 
+    <button type="button" id="gradeTestBtn" class="secondary">学年まとめテストにする（選んだ学年の全字・テスト形式・解答つき）</button>
+    <p class="hint">ボタンを押すと、下の設定が「選んだ学年の漢字ぜんぶを1回ずつ出題」に変わります。あとから変えられます。</p>
+
     <h2>2. 範囲</h2>
     <div class="choice-grid cols-1" id="scopeSelect">
       <label class="scope-option"><input type="radio" name="scope" value="grade" checked> 選んだ学年の漢字</label>
@@ -65,6 +68,7 @@
       <label><input type="radio" name="count" value="10" checked> 10問</label>
       <label><input type="radio" name="count" value="15"> 15問</label>
       <label><input type="radio" name="count" value="20"> 20問</label>
+      <label><input type="radio" name="count" value="all"> ぜんぶ（範囲の全字）</label>
       <label class="custom-count"><input type="radio" name="count" value="custom"> 指定 <input id="customCount" type="number" min="1" max="100" value="10"> 問</label>
     </div>
 

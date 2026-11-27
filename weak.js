@@ -4,7 +4,7 @@
   var STORAGE_KEY = 'kanji-site-v1';
   var ALL = (window.KANJI_DATA || []).map(function (e) { return { k: e[0], grade: e[1] }; });
   var gradeOf = {}; ALL.forEach(function (e) { gradeOf[e.k] = e.grade; });
-  var store = { miss: {}, settings: {} };
+  var store = { miss: {}, streak: {}, settings: {} };
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -12,6 +12,8 @@
     } catch (e) {}
     if (!store.miss || typeof store.miss !== 'object') store.miss = {};
     if (!store.settings || typeof store.settings !== 'object') store.settings = {};
+    if (!store.streak || typeof store.streak !== 'object') store.streak = {};
+    Object.keys(store.streak).forEach(function (k) { if (gradeOf[k] === undefined || !(store.streak[k] > 0)) delete store.streak[k]; });
     /* 知らない漢字・0回以下は捨てる */
     Object.keys(store.miss).forEach(function (k) { if (gradeOf[k] === undefined || !(store.miss[k] > 0)) delete store.miss[k]; });
   }
@@ -45,6 +47,19 @@
       box.innerHTML = html;
     }
     $('exportBox').value = makeCode();
+    renderMastery();
+  }
+  function isMaster(e) { return (store.streak[e.k] || 0) >= 2 && !(store.miss[e.k] > 0); }
+  function renderMastery() {
+    var tot = 0, ms = 0, html = '';
+    for (var g = 1; g <= 6; g++) {
+      var gl = ALL.filter(function (e) { return e.grade === g; });
+      var m = gl.filter(isMaster).length, pct = gl.length ? Math.round(m * 100 / gl.length) : 0;
+      tot += gl.length; ms += m;
+      html += '<div class="mrow"><span class="mg">' + g + '年生</span><span class="mbar"><span class="mfill" style="width:' + pct + '%"></span></span><span class="mv">' + pct + '% <small>(' + m + '／' + gl.length + ')</small></span></div>';
+    }
+    html = '<div class="mrow mall"><span class="mg">ぜんぶ</span><span class="mbar"><span class="mfill" style="width:' + Math.round(ms * 100 / tot) + '%"></span></span><span class="mv">' + Math.round(ms * 100 / tot) + '% <small>(' + ms + '／' + tot + ')</small></span></div>' + html;
+    $('masteryList').innerHTML = html;
   }
 
   /* ---------- クイズ・プリントへ ---------- */
@@ -68,7 +83,7 @@
 
   /* ---------- 書き出し・読みこみ ---------- */
   function makeCode() {
-    var json = JSON.stringify({ v: 1, miss: store.miss });
+    var json = JSON.stringify({ v: 2, miss: store.miss, streak: store.streak });
     try { return 'KJ1:' + btoa(unescape(encodeURIComponent(json))); } catch (e) { return json; }
   }
   function parseCode(text) {
@@ -78,18 +93,23 @@
     if (text.indexOf('KJ1:') === 0) json = decodeURIComponent(escape(atob(text.slice(4).replace(/\s+/g, ''))));
     var o = JSON.parse(json);
     if (!o || typeof o.miss !== 'object') throw new Error('format');
-    return o.miss;
+    return o;
   }
   function msg(t) { $('backupMsg').textContent = t; }
   function doImport(text) {
-    var m;
-    try { m = parseCode(text); } catch (e) { msg('読みこめませんでした。コードを、まるごと貼りつけたか確かめてください。'); return; }
+    var m, o;
+    try { o = parseCode(text); m = o.miss; } catch (e) { msg('読みこめませんでした。コードを、まるごと貼りつけたか確かめてください。'); return; }
     var added = 0, up = 0;
     Object.keys(m).forEach(function (k) {
       var n = Math.min(5, Math.floor(Number(m[k])));
       if (gradeOf[k] === undefined || !(n > 0)) return;
       if (!(store.miss[k] > 0)) { store.miss[k] = n; added++; }
       else if (n > store.miss[k]) { store.miss[k] = n; up++; }
+    });
+    var sk = (o.streak && typeof o.streak === 'object') ? o.streak : {};
+    Object.keys(sk).forEach(function (k) {
+      var n = Math.min(3, Math.floor(Number(sk[k])));
+      if (gradeOf[k] !== undefined && n > (store.streak[k] || 0)) store.streak[k] = n;
     });
     save(); render();
     msg(added + '字を足しました' + (up ? '（' + up + '字は回数を更新）' : '') + '。');
@@ -107,7 +127,7 @@
     else fallback();
   });
   $('dlBtn').addEventListener('click', function () {
-    var blob = new Blob([JSON.stringify({ v: 1, miss: store.miss }, null, 1)], { type: 'application/json' });
+    var blob = new Blob([JSON.stringify({ v: 2, miss: store.miss, streak: store.streak }, null, 1)], { type: 'application/json' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kanji-nigate.json';
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     msg('ファイルを保存しました。');
